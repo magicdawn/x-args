@@ -2,7 +2,8 @@
   "name": "@magicdawn/x-args",
   "version": "0.0.2",
   "description": "play with cli commands like a composer",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "bin": {
     "x-args": "bin/x-args.js",
     "@magicdawn/x-args": "bin/x-args.js"
@@ -16,7 +17,8 @@
     "test": "mocha",
     "test-cover": "nyc --reporter=lcov --reporter=text mocha",
     "report-cover": "codecov",
-    "build": "rm -rf lib; tsc",
+    "build": "rm -rf lib; tsc -d",
+    "build:watch": "rm -rf lib; tsc -d -w",
     "prepublishOnly": "npm run build",
     "prepare": "husky install"
   },
