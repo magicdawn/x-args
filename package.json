@@ -1,7 +1,7 @@
 {
   "name": "@magicdawn/x-args",
   "version": "0.0.1",
-  "description": "x-args",
+  "description": "play with cli commands like a composer",
   "main": "index.js",
   "bin": {
     "x-args": "bin/x-args.js"

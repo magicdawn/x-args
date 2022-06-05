@@ -1,6 +1,6 @@
 # x-args
 
-> x-args
+> play with cli commands like a composer
 
 [![Build Status](https://img.shields.io/travis/magicdawn/x-args.svg?style=flat-square)](https://travis-ci.org/magicdawn/x-args)
 [![Coverage Status](https://img.shields.io/codecov/c/github/magicdawn/x-args.svg?style=flat-square)](https://codecov.io/gh/magicdawn/x-args)
