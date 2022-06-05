@@ -4,7 +4,8 @@
   "description": "play with cli commands like a composer",
   "main": "index.js",
   "bin": {
-    "x-args": "bin/x-args.js"
+    "x-args": "bin/x-args.js",
+    "@magicdawn/x-args": "bin/x-args.js"
   },
   "files": [
     "bin/x-args.js",

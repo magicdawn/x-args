@@ -11,15 +11,15 @@
 ## Install
 
 ```sh
-$ pnpm add @magicdawn/x-args
+$ pnpm add @magicdawn/x-args -g
 
 # or
-$ pnpm --package @magicdawn/x-args dlx x-args
+$ pnpm dlx @magicdawn/x-args
 ```
 
 ## Commands
 
-x-args
+use `@magicdawn/x-args` or shorter `x-args`
 
 ## Changelog
 
