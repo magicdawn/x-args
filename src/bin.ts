@@ -17,6 +17,8 @@ cli.register(Builtins.DefinitionsCommand)
 
 // more commands
 import { DefaultCommand } from './commands/default'
+import { TxtCommand } from './commands/txt'
+cli.register(TxtCommand)
 cli.register(DefaultCommand)
 
 // run
