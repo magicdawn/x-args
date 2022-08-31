@@ -44,8 +44,8 @@ export class TxtCommand extends Command {
     const processed = new Set<string>()
 
     // live edit support: start with 1 line
-    const getTxtNextLine = async () => {
-      const content = await fse.readFile(txtFile, 'utf8')
+    const getTxtNextLine = () => {
+      const content = fse.readFileSync(txtFile, 'utf8')
 
       const lines = content
         .split('\n')
@@ -58,7 +58,7 @@ export class TxtCommand extends Command {
     }
 
     let line: string
-    while ((line = await getTxtNextLine())) {
+    while ((line = getTxtNextLine())) {
       const cmd = command.replace(/:arg/gi, line).replace(/:line/gi, line)
       console.log('')
       console.log('[txt:line] %s', line)
