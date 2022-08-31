@@ -6,7 +6,7 @@ specifiers:
   '@swc/core': ^1.2.245
   '@swc/helpers': ^0.4.11
   '@types/fs-extra': ^9.0.13
-  '@types/node': ^17.0.45
+  '@types/node': ^18.7.14
   chalk: '4'
   clipanion: 3.2.0-rc.11
   codecov: ^3.8.2
@@ -35,7 +35,7 @@ devDependencies:
   '@swc/core': 1.2.245
   '@swc/helpers': 0.4.11
   '@types/fs-extra': 9.0.13
-  '@types/node': 17.0.45
+  '@types/node': 18.7.14
   codecov: 3.8.3
   eslint: 8.23.0
   husky: 8.0.1
@@ -44,7 +44,7 @@ devDependencies:
   nyc: 15.1.0
   prettier: 2.7.1
   should: 13.2.3
-  ts-node: 10.9.1_4djovfld5m3exovivut35pdgse
+  ts-node: 10.9.1_mabkchajh5vl5ajnfsxqjzhqsa
   type-fest: 2.19.0
   typescript: 4.8.2
 
@@ -584,11 +584,11 @@ packages:
   /@types/fs-extra/9.0.13:
     resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
     dependencies:
-      '@types/node': 17.0.45
+      '@types/node': 18.7.14
     dev: true
 
-  /@types/node/17.0.45:
-    resolution: {integrity: sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==}
+  /@types/node/18.7.14:
+    resolution: {integrity: sha512-6bbDaETVi8oyIARulOE9qF1/Qdi/23z6emrUh0fNJRUmjznqrixD4MpGDdgOFk5Xb0m2H6Xu42JGdvAxaJR/wA==}
     dev: true
 
   /@ungap/promise-all-settled/1.1.2:
@@ -2998,7 +2998,7 @@ packages:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
     dev: true
 
-  /ts-node/10.9.1_4djovfld5m3exovivut35pdgse:
+  /ts-node/10.9.1_mabkchajh5vl5ajnfsxqjzhqsa:
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
     peerDependencies:
@@ -3018,7 +3018,7 @@ packages:
       '@tsconfig/node12': 1.0.9
       '@tsconfig/node14': 1.0.1
       '@tsconfig/node16': 1.0.2
-      '@types/node': 17.0.45
+      '@types/node': 18.7.14
       acorn: 8.7.1
       acorn-walk: 8.2.0
       arg: 4.1.3

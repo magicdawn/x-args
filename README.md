@@ -14,12 +14,36 @@
 $ pnpm add @magicdawn/x-args -g
 
 # or
+$ pnpx @magicdawn/x-args
 $ pnpm dlx @magicdawn/x-args
 ```
 
 ## Commands
 
 use `@magicdawn/x-args` or shorter `x-args`
+
+### txt command
+
+features that native xargs does not have
+
+- comment, `x-args txt` support `//` or `#` comment
+- live reload, `x-args` read txt file, exec command, and read txt again, so edit after command start will works as well
+
+## Tips
+
+### `-c,--command`
+
+```bash
+# x-args glob file command
+x-args -f './some.pattern' -c $'echo :line'
+
+x-args -f './some.pattern' -c $'echo \':line\''
+```
+
+a special shell syntax learn from zx, see
+
+- https://github.com/google/zx/blob/main/docs/quotes.md#quotes
+- https://stackoverflow.com/a/16605140
 
 ## Changelog
 
