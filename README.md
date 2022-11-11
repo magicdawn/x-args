@@ -14,13 +14,12 @@
 $ pnpm add @magicdawn/x-args -g
 
 # or
-$ pnpx @magicdawn/x-args
-$ pnpm dlx @magicdawn/x-args
+$ pnpm --package=@magicdawn/x-args dlx x-args
 ```
 
 ## Commands
 
-use `@magicdawn/x-args` or shorter `x-args`
+use `x-args`
 
 ### txt command
 
