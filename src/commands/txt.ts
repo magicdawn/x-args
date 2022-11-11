@@ -12,7 +12,7 @@ export class TxtCommand extends Command {
 
   static usage: Usage = {
     description:
-      'xargs txt <txt-file>, use `:line` as placeholder of a line of txt file, use `:arg0` ... to replace a single value',
+      'xargs txt <txt-file>, use `:line` as placeholder of a line of txt file, use  (`:arg0` or `:args0`) ... to replace a single value',
   }
 
   txt = Option.String({ name: 'txt', required: true })
@@ -22,7 +22,7 @@ export class TxtCommand extends Command {
     description: 'the command to execute',
   })
 
-  argSplit = Option.String('-s,--split,--arg-split', ' ', {
+  argsSplit = Option.String('-s,--split,--args-split', ' ', {
     description: 'char to split a line, default using space',
   })
 
@@ -64,11 +64,11 @@ export class TxtCommand extends Command {
 
     let line: string
     while ((line = getTxtNextLine())) {
-      let splitedArgs = line.split(this.argSplit)
+      let splitedArgs = line.split(this.argsSplit)
 
       let cmd = command
       for (const [index, val] of splitedArgs.entries()) {
-        cmd = cmd.replace(new RegExp(':arg' + index, 'ig'), val)
+        cmd = cmd.replace(new RegExp(':args?' + index, 'ig'), val)
       }
       cmd = cmd.replace(/:line/gi, line)
 
