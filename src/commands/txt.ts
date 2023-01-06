@@ -1,10 +1,8 @@
 import chalk from 'chalk'
 import { execSync } from 'child_process'
 import { Command, Option, Usage } from 'clipanion'
-import globby from 'globby'
 import path from 'path'
 import { fse } from '../libs'
-import { getFilenameTokens, printFilenameTokens, renderFilenameTokens } from '../util/file'
 
 // e.g x-args ./some.txt -c $'himg c -d :line -q 80'
 export class TxtCommand extends Command {
