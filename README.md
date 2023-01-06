@@ -22,8 +22,10 @@ $ pnpm --package=@magicdawn/x-args dlx x-args
 ### `default` command
 
 ```sh
-x-args
+x-args -f './*.*' -c $'cwebp :file -o \':dir/:name_compressed.:ext\''
 ```
+
+use `-t` to show available tokens
 
 ### `txt` command
 
@@ -49,10 +51,10 @@ features that native xargs does not have
 
 ```bash
 # x-args glob file command
-x-args -f './some.pattern' -c $'echo :line'
+x-args txt ./to-be-processed.txt -c $'echo :line'
 
-# if :line has space, must be quoted
-x-args -f './some.pattern' -c $'echo \':line\''
+# if :line contains space, must be quoted
+x-args txt ./to-be-processed.txt -c $'echo \':line\''
 ```
 
 a special shell syntax learn from zx, see
