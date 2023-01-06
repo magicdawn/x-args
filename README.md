@@ -19,14 +19,29 @@ $ pnpm --package=@magicdawn/x-args dlx x-args
 
 ## Commands
 
-use `x-args`
+### `default` command
 
-### txt command
+```sh
+x-args
+```
+
+### `txt` command
+
+```sh
+# use :line
+x-args txt ./to-be-processed.txt -c $'echo \':line\''
+```
 
 features that native xargs does not have
 
 - comment, `x-args txt` support `//` or `#` comment
-- live reload, `x-args` read txt file, exec command, and read txt again, so edit after command start will works as well
+- live reload, `x-args txt` read txt file, exec command, and read txt again, so edit after command start will works as well
+
+#### Templates
+
+- use `:line` for whole line
+- use `args0` / `arg0` for single arg
+- use `--argsSplit` to specify how to turn `:line` to `:args0`, default using a space
 
 ## Tips
 
@@ -36,6 +51,7 @@ features that native xargs does not have
 # x-args glob file command
 x-args -f './some.pattern' -c $'echo :line'
 
+# if :line has space, must be quoted
 x-args -f './some.pattern' -c $'echo \':line\''
 ```
 
