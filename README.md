@@ -42,8 +42,14 @@ features that native xargs does not have
 #### Templates
 
 - use `:line` for whole line
-- use `args0` / `arg0` for single arg
-- use `--argsSplit` to specify how to turn `:line` to `:args0`, default using a space
+- use `:args0` / `:arg0` for single arg
+- use `-s` / `--split` / `--args-split` to specify how to turn `:line` to `:args0`, default using a space
+
+when input is a filepath, and may contains space, use a different separator that has low possibility occurs in a filepath
+for example
+
+- ancient chinese character for Simplified chinese user: `__纛恚掾旒__`, `--args-split '__纛恚掾旒__'`, [出处](https://mp.weixin.qq.com/s?__biz=MjM5ODI2MTQxOQ==&mid=2653658340&idx=1&sn=32eb7031cdb585eb216ba1490f0629cd&chksm=bd125b208a65d2368daa60d158e9fc12b2997b2324a1d3938727aef3f5f4cecdd7529ea8c6b0&scene=27)
+- english user, maybe a emoji combination ?
 
 ## Tips
 
