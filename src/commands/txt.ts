@@ -71,8 +71,9 @@ export class TxtCommand extends Command {
       cmd = cmd.replace(/:line/gi, line)
 
       console.log('')
-      console.log('[txt:line] %s', line)
-      console.log('[txt:line] cmd = %s', cmd)
+      console.log(`${chalk.green('[txt:line]')} %s`, line)
+      console.log(`${chalk.green('[txt:line]')} cmd = %s`, cmd)
+      console.log('')
 
       if (this.yes) {
         execSync(cmd, { stdio: 'inherit' })
