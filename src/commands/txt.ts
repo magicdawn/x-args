@@ -65,9 +65,9 @@ export class TxtCommand extends Command {
       let splitedArgs = line.split(this.argsSplit)
 
       let cmd = command
-      for (const [index, val] of splitedArgs.entries()) {
-        cmd = cmd.replace(new RegExp(':args?' + index, 'ig'), val)
-      }
+      cmd = cmd.replace(/:args?(\d)/gi, (match, index) => {
+        return splitedArgs[index] ?? ''
+      })
       cmd = cmd.replace(/:line/gi, line)
 
       console.log('')
