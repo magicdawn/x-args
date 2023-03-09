@@ -34,14 +34,15 @@ export class TxtCommand extends Command {
   }
 
   async run() {
-    const { txt, command } = this
+    const { txt, command, argsSplit } = this
 
     const txtFile = path.resolve(txt)
 
     console.log('')
     console.log(`${chalk.green('[x-args]')}: received`)
-    console.log(` ${chalk.cyan('txt file')}: ${chalk.yellow(txtFile)}`)
-    console.log(`  ${chalk.cyan('command')}: ${chalk.yellow(command)}`)
+    console.log(`   ${chalk.cyan('txt file')}: ${chalk.yellow(txtFile)}`)
+    console.log(` ${chalk.cyan('args split')}: ${chalk.yellow('`' + argsSplit + '`')}`)
+    console.log(`    ${chalk.cyan('command')}: ${chalk.yellow(command)}`)
     console.log('')
 
     const processed = new Set<string>()

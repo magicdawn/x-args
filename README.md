@@ -36,7 +36,7 @@ x-args txt ./to-be-processed.txt -c $'echo \':line\''
 
 features that native xargs does not have
 
-- comment, `x-args txt` support `//` or `#` comment
+- comment, `x-args txt` support `//` or `#` comment, we suggest use `.conf` extenstion, so that editors can recognize `#` comment
 - live reload, `x-args txt` read txt file, exec command, and read txt again, so edit after command start will works as well
 
 #### Templates
