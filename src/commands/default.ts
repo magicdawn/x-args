@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import { execSync } from 'child_process'
 import { Command, Option, Usage } from 'clipanion'
 import globby from 'globby'
+import { PathFinder } from 'mac-helper'
 import { BaseCommand } from '../util/BaseCommand'
 import { getFilenameTokens, printFilenameTokens, renderFilenameTokens } from '../util/file'
 
@@ -13,8 +14,7 @@ export class DefaultCommand extends BaseCommand {
     description: 'xargs',
   }
 
-  command = Option.String('-c,--command', {
-    required: true,
+  command = Option.String('-c,--command', '', {
     description: 'the command to execute',
   })
 
@@ -31,14 +31,25 @@ export class DefaultCommand extends BaseCommand {
     console.log(`${chalk.cyan('command')}: ${chalk.yellow(command)}`)
     console.log('')
 
-    const resolvedFiles = globby.sync(files, { caseSensitiveMatch: !this.ignoreCase })
+    let resolvedFiles: string[] = []
+
+    if (files === '$PF') {
+      resolvedFiles = await PathFinder.allSelected()
+      if (!resolvedFiles.length) {
+        console.error('$PF has no selected files')
+        process.exit(1)
+      }
+    } else {
+      resolvedFiles = globby.sync(files, { caseSensitiveMatch: !this.ignoreCase })
+      console.log(
+        `${chalk.green('[globby]')}: docs ${chalk.blue(
+          'https://github.com/mrmlnc/fast-glob#pattern-syntax'
+        )}`
+      )
+    }
+
     console.log(
-      `${chalk.green('[globby]')}: docs ${chalk.blue(
-        'https://github.com/mrmlnc/fast-glob#pattern-syntax'
-      )}`
-    )
-    console.log(
-      `${chalk.green('[globby]')}: mapping ${chalk.yellow(files)} to ${chalk.yellow(
+      `${chalk.green('[files]')}: mapping ${chalk.yellow(files)} to ${chalk.yellow(
         resolvedFiles.length
       )} files ->`
     )
@@ -52,8 +63,8 @@ export class DefaultCommand extends BaseCommand {
 
       console.log('')
       console.log(`${chalk.green('[exec]')} for ${chalk.yellow(item)}`)
-      console.log(`  ${chalk.green('command')}: ${chalk.yellow(usingCommand)}`)
-      if (this.showTokens) {
+      this.command && console.log(`  ${chalk.green('command')}: ${chalk.yellow(usingCommand)}`)
+      if (this.showTokens || !this.command) {
         printFilenameTokens(tokens)
       }
 
