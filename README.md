@@ -14,7 +14,9 @@
 $ pnpm add @magicdawn/x-args -g
 
 # or
-$ pnpm --package=@magicdawn/x-args dlx x-args
+$ pnpm dlx @magicdawn/x-args
+$ pnpx @magicdawn/x-args
+$ bunx @magicdawn/x-args
 ```
 
 ## Commands
