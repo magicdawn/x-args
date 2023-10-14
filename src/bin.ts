@@ -1,7 +1,10 @@
-#!ts-node
+#!/usr/bin/env node
 
-import { Cli, Builtins } from 'clipanion'
+import { Builtins, Cli } from 'clipanion'
+import esmUtils from 'esm-utils'
 import { PackageJson } from 'type-fest'
+
+const { require } = esmUtils(import.meta)
 const { version, name, bin } = require('../package') as PackageJson
 
 const [node, app, ...args] = process.argv

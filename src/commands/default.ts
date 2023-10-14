@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { execSync } from 'child_process'
 import { Command, Option, Usage } from 'clipanion'
-import globby from 'globby'
+import fg from 'fast-glob'
 import { PathFinder } from 'mac-helper'
 import { BaseCommand } from '../util/BaseCommand'
 import { getFilenameTokens, printFilenameTokens, renderFilenameTokens } from '../util/file'
@@ -40,7 +40,7 @@ export class DefaultCommand extends BaseCommand {
         process.exit(1)
       }
     } else {
-      resolvedFiles = globby.sync(files, { caseSensitiveMatch: !this.ignoreCase })
+      resolvedFiles = fg.sync(files, { caseSensitiveMatch: !this.ignoreCase })
       console.log(
         `${chalk.green('[globby]')}: docs ${chalk.blue(
           'https://github.com/mrmlnc/fast-glob#pattern-syntax'
