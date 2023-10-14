@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.0.0 2023-10-14
+
+- ESM only, so a major version bump
+
 ## v0.2.0 2023-01-07
 
 - 16b2768 feat: txt, `:args0` / `:arg0` both works
