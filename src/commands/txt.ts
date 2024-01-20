@@ -86,8 +86,8 @@ export class TxtCommand extends Command {
         cmd = cmd.replace(/:line/gi, line)
 
         console.log('')
-        console.log(`${chalk.green('[txt:line]')} %s`, line)
-        console.log(`${chalk.green('[txt:line]')} cmd = %s`, cmd)
+        console.log(`${chalk.green('[txt:line]')} %s`, chalk.yellow(line))
+        console.log(`${chalk.green('[txt:line]')} cmd = \`%s\``, chalk.yellow(cmd))
         console.log('')
 
         if (self.yes) {
