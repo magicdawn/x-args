@@ -1,6 +1,10 @@
 import chalk from 'chalk'
 import { execSync } from 'child_process'
 import { Command, Option, Usage } from 'clipanion'
+import delay from 'delay'
+import { isEqual } from 'lodash-es'
+import CircularBuffer from 'mnemonist/circular-buffer.js'
+import ms from 'ms'
 import path from 'path'
 import { fse } from '../libs'
 
@@ -29,12 +33,21 @@ export class TxtCommand extends Command {
     description: 'exec commands, default false(only preview commands, aka dry run)',
   })
 
+  wait = Option.Boolean('-w,--wait', false, {
+    description: 'wait new items when queue empty',
+  })
+
+  waitTimeout = Option.String('--wait-timeout', {
+    description: 'wait timeout, will pass to ms()',
+  })
+
   execute(): Promise<number | void> {
     return this.run()
   }
 
   async run() {
-    const { txt, command, argsSplit } = this
+    const { txt, command, argsSplit, waitTimeout } = this
+    const self = this
 
     const txtFile = path.resolve(txt)
 
@@ -61,26 +74,82 @@ export class TxtCommand extends Command {
       if (lines.length) return lines[0]
     }
 
-    let line: string
-    while ((line = getTxtNextLine())) {
-      let splitedArgs = line.split(this.argsSplit)
+    function checkTxtFile() {
+      let line: string
+      while ((line = getTxtNextLine())) {
+        let splitedArgs = line.split(argsSplit)
 
-      let cmd = command
-      cmd = cmd.replace(/:args?(\d)/gi, (match, index) => {
-        return splitedArgs[index] ?? ''
-      })
-      cmd = cmd.replace(/:line/gi, line)
+        let cmd = command
+        cmd = cmd.replace(/:args?(\d)/gi, (match, index) => {
+          return splitedArgs[index] ?? ''
+        })
+        cmd = cmd.replace(/:line/gi, line)
 
-      console.log('')
-      console.log(`${chalk.green('[txt:line]')} %s`, line)
-      console.log(`${chalk.green('[txt:line]')} cmd = %s`, cmd)
-      console.log('')
+        console.log('')
+        console.log(`${chalk.green('[txt:line]')} %s`, line)
+        console.log(`${chalk.green('[txt:line]')} cmd = %s`, cmd)
+        console.log('')
 
-      if (this.yes) {
-        execSync(cmd, { stdio: 'inherit' })
+        if (self.yes) {
+          execSync(cmd, { stdio: 'inherit' })
+        }
+
+        processed.add(line)
       }
+    }
 
-      processed.add(line)
+    const waitTimeoutMs = waitTimeout ? ms(waitTimeout) : 0
+    if (isNaN(waitTimeoutMs)) {
+      throw new Error('unrecognized --wait-timeout format, pls check https://npm.im/ms')
+    }
+
+    let timeoutAt = Infinity
+    function setTimeoutAt() {
+      if (waitTimeout) {
+        timeoutAt = Date.now() + waitTimeoutMs
+      }
+    }
+
+    checkTxtFile()
+    setTimeoutAt()
+
+    if (this.wait) {
+      const q = new CircularBuffer<boolean>(Array, 2)
+      q.push(true)
+
+      while (Date.now() <= timeoutAt) {
+        await delay(2_000)
+
+        const hasLine = !!getTxtNextLine()
+        q.push(hasLine)
+
+        if (hasLine) {
+          checkTxtFile()
+          setTimeoutAt()
+        } else {
+          // print only when [true,false]
+          const shouldPrint = isEqual(q.toArray(), [true, false])
+          if (shouldPrint) {
+            console.log()
+            console.info(`${chalk.green('[wait]')}: no new items, waiting for changes ...`)
+            console.log()
+          }
+        }
+      }
     }
   }
 }
+
+// const q = new CircularBuffer<boolean>(Array, 2)
+// {
+//   q.push(true)
+//   q.push(true)
+//   q.push(true)
+//   // q.push(true)
+// }
+// q.push(false)
+// q.push(true)
+// // debugger
+// console.log(q.toArray())
+// console.log(q.peekFirst())
+// console.log(q.peekLast())
