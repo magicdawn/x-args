@@ -37,7 +37,7 @@ export class TxtCommand extends Command {
     description: 'wait new items when queue empty',
   })
 
-  waitTimeout = Option.String('--wait-timeout', {
+  waitTimeout = Option.String('--wait-timeout,--WT', {
     description: 'wait timeout, will pass to ms()',
   })
 
