@@ -139,17 +139,3 @@ export class TxtCommand extends Command {
     }
   }
 }
-
-// const q = new CircularBuffer<boolean>(Array, 2)
-// {
-//   q.push(true)
-//   q.push(true)
-//   q.push(true)
-//   // q.push(true)
-// }
-// q.push(false)
-// q.push(true)
-// // debugger
-// console.log(q.toArray())
-// console.log(q.peekFirst())
-// console.log(q.peekLast())
