@@ -40,7 +40,7 @@ features that native xargs does not have
 
 - comment, `x-args txt` support `//` or `#` comment, I suggest use `.conf` extenstion, so that editors can recognize `#` comment
 - live reload, `x-args txt` read txt file, exec command, and read txt again, so edit after command start will works as well
-- wait input: use `-w,--wait`, so that this command will not exit but to wait txt file update. use `--wait-timeout 1h` to delay `1h` 1 hour.
+- wait input update: use `-w,--wait`, so that this command will not exit but to wait txt file update. use `--wait-timeout 1h` to delay `1h` 1 hour.
 
 #### Templates
 
