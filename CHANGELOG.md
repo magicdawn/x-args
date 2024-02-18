@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v1.1.0 2024-02-18
+
+- 0d3c36c chore: more
+- 6bae852 feat: add --WT alias to --wait-timeout
+- 49971d7 chore: clean up test code & update deps
+- 4e3d626 feat: color output
+- f65404e feat: add -w/--wait & --wait-timeout to txt command
+- 03ed10b chore: update readme
+
 ## v1.0.0 2023-10-14
 
 - ESM only, so a major version bump
