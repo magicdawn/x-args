@@ -6,7 +6,7 @@ import { isEqual } from 'lodash-es'
 import CircularBuffer from 'mnemonist/circular-buffer.js'
 import ms from 'ms'
 import path from 'path'
-import { fse } from '../libs'
+import { boxen, fse } from '../libs'
 
 // e.g x-args ./some.txt -c $'himg c -d :line -q 80'
 export class TxtCommand extends Command {
@@ -55,6 +55,8 @@ export type TxtCommandArgs = {
   yes: boolean
 }
 
+const lognsp = 'x-args:txt-command'
+
 export async function startTxtCommand(args: TxtCommandArgs) {
   const { txt, command, argsSplit, wait, waitTimeout, yes } = args
 
@@ -95,8 +97,20 @@ export async function startTxtCommand(args: TxtCommandArgs) {
       cmd = cmd.replace(/:line/gi, line)
 
       console.log('')
-      console.log(`${chalk.green('[txt:line]')} %s`, chalk.yellow(line))
-      console.log(`${chalk.green('[txt:line]')} cmd = \`%s\``, chalk.yellow(cmd))
+      console.log('')
+      console.log(
+        boxen(
+          [
+            //
+            `${chalk.green(' line =>')} ${chalk.yellow(line.padEnd(70, ' '))}`,
+            `${chalk.green('  cmd =>')} ${chalk.yellow(cmd)}`,
+          ].join('\n'),
+          {
+            borderColor: 'green',
+            title: chalk.green(`${lognsp}:line`),
+          },
+        ),
+      )
       console.log('')
 
       if (yes) {
@@ -140,7 +154,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
         const shouldPrint = isEqual(q.toArray(), [true, false])
         if (shouldPrint) {
           console.log()
-          console.info(`${chalk.green('[wait]')}: no new items, waiting for changes ...`)
+          console.info(`${chalk.green(`[${lognsp}:wait]`)} no new items, waiting for changes ...`)
           console.log()
         }
       }
