@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v1.2.0 2024-02-29
+
+- cf6817f feat: export startTxtCommand
+- c76f59b chore: clean up legacy bin dir
+
 ## v1.1.0 2024-02-18
 
 - 0d3c36c chore: more
