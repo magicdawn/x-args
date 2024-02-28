@@ -42,98 +42,106 @@ export class TxtCommand extends Command {
   })
 
   execute(): Promise<number | void> {
-    return this.run()
+    return startTxtCommand({ ...this })
+  }
+}
+
+export type TxtCommandArgs = {
+  txt: string
+  command: string
+  argsSplit: string
+  wait: boolean
+  waitTimeout: string
+  yes: boolean
+}
+
+export async function startTxtCommand(args: TxtCommandArgs) {
+  const { txt, command, argsSplit, wait, waitTimeout, yes } = args
+
+  const txtFile = path.resolve(txt)
+
+  console.log('')
+  console.log(`${chalk.green('[x-args]')}: received`)
+  console.log(`   ${chalk.cyan('txt file')}: ${chalk.yellow(txtFile)}`)
+  console.log(` ${chalk.cyan('args split')}: ${chalk.yellow('`' + argsSplit + '`')}`)
+  console.log(`    ${chalk.cyan('command')}: ${chalk.yellow(command)}`)
+  console.log('')
+
+  const processed = new Set<string>()
+
+  // live edit support: start with 1 line
+  const getTxtNextLine = () => {
+    const content = fse.readFileSync(txtFile, 'utf8')
+
+    const lines = content
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .filter((line) => !(line.startsWith('//') || line.startsWith('#'))) // remove comment
+      .filter((line) => !processed.has(line)) // remove already processed
+
+    if (lines.length) return lines[0]
   }
 
-  async run() {
-    const { txt, command, argsSplit, waitTimeout } = this
-    const self = this
+  function checkTxtFile() {
+    let line: string
+    while ((line = getTxtNextLine())) {
+      let splitedArgs = line.split(argsSplit)
 
-    const txtFile = path.resolve(txt)
+      let cmd = command
+      cmd = cmd.replace(/:args?(\d)/gi, (match, index) => {
+        return splitedArgs[index] ?? ''
+      })
+      cmd = cmd.replace(/:line/gi, line)
 
-    console.log('')
-    console.log(`${chalk.green('[x-args]')}: received`)
-    console.log(`   ${chalk.cyan('txt file')}: ${chalk.yellow(txtFile)}`)
-    console.log(` ${chalk.cyan('args split')}: ${chalk.yellow('`' + argsSplit + '`')}`)
-    console.log(`    ${chalk.cyan('command')}: ${chalk.yellow(command)}`)
-    console.log('')
+      console.log('')
+      console.log(`${chalk.green('[txt:line]')} %s`, chalk.yellow(line))
+      console.log(`${chalk.green('[txt:line]')} cmd = \`%s\``, chalk.yellow(cmd))
+      console.log('')
 
-    const processed = new Set<string>()
-
-    // live edit support: start with 1 line
-    const getTxtNextLine = () => {
-      const content = fse.readFileSync(txtFile, 'utf8')
-
-      const lines = content
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .filter((line) => !(line.startsWith('//') || line.startsWith('#'))) // remove comment
-        .filter((line) => !processed.has(line)) // remove already processed
-
-      if (lines.length) return lines[0]
-    }
-
-    function checkTxtFile() {
-      let line: string
-      while ((line = getTxtNextLine())) {
-        let splitedArgs = line.split(argsSplit)
-
-        let cmd = command
-        cmd = cmd.replace(/:args?(\d)/gi, (match, index) => {
-          return splitedArgs[index] ?? ''
-        })
-        cmd = cmd.replace(/:line/gi, line)
-
-        console.log('')
-        console.log(`${chalk.green('[txt:line]')} %s`, chalk.yellow(line))
-        console.log(`${chalk.green('[txt:line]')} cmd = \`%s\``, chalk.yellow(cmd))
-        console.log('')
-
-        if (self.yes) {
-          execSync(cmd, { stdio: 'inherit' })
-        }
-
-        processed.add(line)
+      if (yes) {
+        execSync(cmd, { stdio: 'inherit' })
       }
+
+      processed.add(line)
     }
+  }
 
-    const waitTimeoutMs = waitTimeout ? ms(waitTimeout) : 0
-    if (isNaN(waitTimeoutMs)) {
-      throw new Error('unrecognized --wait-timeout format, pls check https://npm.im/ms')
+  const waitTimeoutMs = waitTimeout ? ms(waitTimeout) : 0
+  if (isNaN(waitTimeoutMs)) {
+    throw new Error('unrecognized --wait-timeout format, pls check https://npm.im/ms')
+  }
+
+  let timeoutAt = Infinity
+  function setTimeoutAt() {
+    if (waitTimeout) {
+      timeoutAt = Date.now() + waitTimeoutMs
     }
+  }
 
-    let timeoutAt = Infinity
-    function setTimeoutAt() {
-      if (waitTimeout) {
-        timeoutAt = Date.now() + waitTimeoutMs
-      }
-    }
+  checkTxtFile()
+  setTimeoutAt()
 
-    checkTxtFile()
-    setTimeoutAt()
+  if (wait) {
+    const q = new CircularBuffer<boolean>(Array, 2)
+    q.push(true)
 
-    if (this.wait) {
-      const q = new CircularBuffer<boolean>(Array, 2)
-      q.push(true)
+    while (Date.now() <= timeoutAt) {
+      await delay(2_000)
 
-      while (Date.now() <= timeoutAt) {
-        await delay(2_000)
+      const hasLine = !!getTxtNextLine()
+      q.push(hasLine)
 
-        const hasLine = !!getTxtNextLine()
-        q.push(hasLine)
-
-        if (hasLine) {
-          checkTxtFile()
-          setTimeoutAt()
-        } else {
-          // print only when [true,false]
-          const shouldPrint = isEqual(q.toArray(), [true, false])
-          if (shouldPrint) {
-            console.log()
-            console.info(`${chalk.green('[wait]')}: no new items, waiting for changes ...`)
-            console.log()
-          }
+      if (hasLine) {
+        checkTxtFile()
+        setTimeoutAt()
+      } else {
+        // print only when [true,false]
+        const shouldPrint = isEqual(q.toArray(), [true, false])
+        if (shouldPrint) {
+          console.log()
+          console.info(`${chalk.green('[wait]')}: no new items, waiting for changes ...`)
+          console.log()
         }
       }
     }
