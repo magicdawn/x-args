@@ -7,6 +7,7 @@ import CircularBuffer from 'mnemonist/circular-buffer.js'
 import ms from 'ms'
 import path from 'path'
 import superjson from 'superjson'
+import { z } from 'zod'
 import { boxen, fse } from '../libs'
 
 enum SessionControl {
@@ -57,14 +58,17 @@ export class TxtCommand extends Command {
   })
 
   execute(): Promise<number | void> {
-    return startTxtCommand({ ...this })
+    return startTxtCommand({
+      ...this,
+      session: z.nativeEnum(SessionControl).parse(this.session),
+    })
   }
 }
 
 export type TxtCommandArgs = Pick<
   TxtCommand,
-  'txt' | 'command' | 'argsSplit' | 'yes' | 'wait' | 'waitTimeout' | 'session'
->
+  'txt' | 'command' | 'argsSplit' | 'yes' | 'wait' | 'waitTimeout'
+> & { session: SessionControl }
 
 const lognsp = 'x-args:txt-command'
 
@@ -134,7 +138,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
   }
 
   function getLineThenRunCommand() {
-    let line: string
+    let line: string | undefined
     while ((line = getTxtNextLine())) {
       let splitedArgs = line.split(argsSplit)
 
