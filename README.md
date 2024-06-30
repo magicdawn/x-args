@@ -21,7 +21,7 @@ $ bunx @magicdawn/x-args
 
 ## Commands
 
-### `default` command
+### `x-args` command
 
 ```sh
 x-args -f './*.*' -c $'cwebp :file -o \':dir/:name_compressed.:ext\''
@@ -29,7 +29,7 @@ x-args -f './*.*' -c $'cwebp :file -o \':dir/:name_compressed.:ext\''
 
 use `-t` to show available tokens
 
-### `txt` command
+### `txt` sub command
 
 ```sh
 # use :line

@@ -61,15 +61,10 @@ export class TxtCommand extends Command {
   }
 }
 
-export type TxtCommandArgs = {
-  txt: string
-  command: string
-  argsSplit: string
-  wait: boolean
-  waitTimeout: string
-  yes: boolean
-  session: string
-}
+export type TxtCommandArgs = Pick<
+  TxtCommand,
+  'txt' | 'command' | 'argsSplit' | 'yes' | 'wait' | 'waitTimeout' | 'session'
+>
 
 const lognsp = 'x-args:txt-command'
 
