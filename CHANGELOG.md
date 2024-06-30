@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v1.3.0 2024-06-30
+
+### 🚀 Features
+
+- Utilize boxen - by **magicdawn** [<samp>(07c13)</samp>](https://github.com/magicdawn/x-args/commit/07c131a)
+- Add session file - by **magicdawn** [<samp>(5de19)</samp>](https://github.com/magicdawn/x-args/commit/5de1943)
+
+### 🏡 Chores
+
+- Use Pick to get TxtCommandArgs - by **magicdawn** [<samp>(2c7d4)</samp>](https://github.com/magicdawn/x-args/commit/2c7d423)
+
 ## v1.2.0 2024-02-29
 
 - cf6817f feat: export startTxtCommand
