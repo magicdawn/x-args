@@ -6,7 +6,18 @@ import { isEqual } from 'lodash-es'
 import CircularBuffer from 'mnemonist/circular-buffer.js'
 import ms from 'ms'
 import path from 'path'
+import superjson from 'superjson'
 import { boxen, fse } from '../libs'
+
+enum SessionControl {
+  Start = 'start',
+  ReStart = 'restart',
+  Continue = 'continue',
+}
+
+function inspectArray(arr: any[]) {
+  return arr.map((x) => '`' + x.toString() + '`').join(' | ')
+}
 
 // e.g x-args ./some.txt -c $'himg c -d :line -q 80'
 export class TxtCommand extends Command {
@@ -41,6 +52,10 @@ export class TxtCommand extends Command {
     description: 'wait timeout, will pass to ms()',
   })
 
+  session = Option.String('--session', SessionControl.Continue, {
+    description: `session handling: default \`${SessionControl.Continue}\`; allowed values: ${inspectArray(Object.values(SessionControl))};`,
+  })
+
   execute(): Promise<number | void> {
     return startTxtCommand({ ...this })
   }
@@ -53,6 +68,7 @@ export type TxtCommandArgs = {
   wait: boolean
   waitTimeout: string
   yes: boolean
+  session: string
 }
 
 const lognsp = 'x-args:txt-command'
@@ -69,10 +85,47 @@ export async function startTxtCommand(args: TxtCommandArgs) {
   console.log(`    ${chalk.cyan('command')}: ${chalk.yellow(command)}`)
   console.log('')
 
-  const processed = new Set<string>()
+  const sessionControl = args.session as SessionControl
+  const sessionFile = path.join(path.dirname(txtFile), `.x-args-session.${path.basename(txtFile)}`)
+
+  let processed = new Set<string>()
+
+  if (sessionControl === SessionControl.Start) {
+    if (fse.existsSync(sessionFile) && fse.readFileSync(sessionFile, 'utf-8').length) {
+      console.error(
+        `session already exists, use \`${SessionControl.Continue}\` or \`${SessionControl.ReStart}\``,
+      )
+      process.exit(1)
+    }
+  } else if (sessionControl === SessionControl.ReStart) {
+    if (fse.existsSync(sessionFile)) {
+      fse.removeSync(sessionFile)
+    }
+  } else if (sessionControl === SessionControl.Continue) {
+    if (fse.existsSync(sessionFile)) {
+      const content = fse.readFileSync(sessionFile, 'utf-8')
+      if (content) {
+        let _processed: Set<string> | undefined
+        try {
+          const parsed = superjson.parse<{ processed: Set<string> }>(content)
+          _processed = parsed.processed
+        } catch (e) {
+          // noop
+        }
+        if (_processed) {
+          processed = new Set(_processed)
+          console.info(`${chalk.green(`[${lognsp}:session]`)} loaded from file %s`, sessionFile)
+        }
+      }
+    }
+  }
+
+  function saveProcessed() {
+    fse.outputFileSync(sessionFile, superjson.stringify({ processed }))
+  }
 
   // live edit support: start with 1 line
-  const getTxtNextLine = () => {
+  function getTxtNextLine() {
     const content = fse.readFileSync(txtFile, 'utf8')
 
     const lines = content
@@ -85,7 +138,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
     if (lines.length) return lines[0]
   }
 
-  function checkTxtFile() {
+  function getLineThenRunCommand() {
     let line: string
     while ((line = getTxtNextLine())) {
       let splitedArgs = line.split(argsSplit)
@@ -96,7 +149,6 @@ export async function startTxtCommand(args: TxtCommandArgs) {
       })
       cmd = cmd.replace(/:line/gi, line)
 
-      console.log('')
       console.log('')
       console.log(
         boxen(
@@ -111,13 +163,14 @@ export async function startTxtCommand(args: TxtCommandArgs) {
           },
         ),
       )
-      console.log('')
 
       if (yes) {
         execSync(cmd, { stdio: 'inherit' })
       }
 
       processed.add(line)
+      saveProcessed()
+      setProgramExitTs()
     }
   }
 
@@ -126,29 +179,27 @@ export async function startTxtCommand(args: TxtCommandArgs) {
     throw new Error('unrecognized --wait-timeout format, pls check https://npm.im/ms')
   }
 
-  let timeoutAt = Infinity
-  function setTimeoutAt() {
+  let exitTs = Infinity
+  function setProgramExitTs() {
     if (waitTimeout) {
-      timeoutAt = Date.now() + waitTimeoutMs
+      exitTs = Date.now() + waitTimeoutMs
     }
   }
 
-  checkTxtFile()
-  setTimeoutAt()
+  getLineThenRunCommand()
 
   if (wait) {
     const q = new CircularBuffer<boolean>(Array, 2)
     q.push(true)
 
-    while (Date.now() <= timeoutAt) {
+    while (Date.now() <= exitTs) {
       await delay(2_000)
 
       const hasLine = !!getTxtNextLine()
       q.push(hasLine)
 
       if (hasLine) {
-        checkTxtFile()
-        setTimeoutAt()
+        getLineThenRunCommand()
       } else {
         // print only when [true,false]
         const shouldPrint = isEqual(q.toArray(), [true, false])

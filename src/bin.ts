@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
 import { Builtins, Cli } from 'clipanion'
-import esmUtils from 'esm-utils'
+import { createRequire } from 'module'
 import { PackageJson } from 'type-fest'
+import { DefaultCommand } from './commands/default'
+import { TxtCommand } from './commands/txt'
 
-const { require } = esmUtils(import.meta)
+const require = createRequire(import.meta.url)
 const { version, name, bin } = require('../package') as PackageJson
 
 const [node, app, ...args] = process.argv
@@ -19,8 +21,6 @@ cli.register(Builtins.VersionCommand)
 cli.register(Builtins.DefinitionsCommand)
 
 // more commands
-import { DefaultCommand } from './commands/default'
-import { TxtCommand } from './commands/txt'
 cli.register(TxtCommand)
 cli.register(DefaultCommand)
 
