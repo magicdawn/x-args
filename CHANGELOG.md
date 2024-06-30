@@ -6,6 +6,10 @@
 
 - Validate using zod - by **magicdawn** [<samp>(2bac9)</samp>](https://github.com/magicdawn/x-args/commit/2bac9ae)
 
+### 🐛 Fixes
+
+- Make typecheck pass, strict tsconfig pass - by **magicdawn** [<samp>(c04e8)</samp>](https://github.com/magicdawn/x-args/commit/c04e895)
+
 ## v1.3.0 2024-06-30
 
 ### 🚀 Features
