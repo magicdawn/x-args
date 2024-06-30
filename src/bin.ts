@@ -12,7 +12,7 @@ const { version, name, bin } = require('../package') as PackageJson
 const [node, app, ...args] = process.argv
 const cli = new Cli({
   binaryLabel: name,
-  binaryName: Object.keys(bin)[0],
+  binaryName: Object.keys(bin as Record<string, string>)[0],
   binaryVersion: version,
 })
 

@@ -48,7 +48,7 @@ export function renderFilenameTokens(template: string, options: FilenameTokens) 
 
   let result = template
   for (let t of tokens) {
-    const val = options[t.slice(1)]
+    const val = options[t.slice(1) as keyof FilenameTokens]
     if (!val) continue
     result = result.replace(new RegExp(t, 'g'), val)
   }

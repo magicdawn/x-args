@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.4.0 2024-06-30
+
+### 🚀 Features
+
+- Validate using zod - by **magicdawn** [<samp>(2bac9)</samp>](https://github.com/magicdawn/x-args/commit/2bac9ae)
+
 ## v1.3.0 2024-06-30
 
 ### 🚀 Features
