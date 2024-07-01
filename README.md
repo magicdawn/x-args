@@ -71,6 +71,21 @@ a special shell syntax learn from zx, see
 - https://github.com/google/zx/blob/main/docs/quotes.md#quotes
 - https://stackoverflow.com/a/16605140
 
+### retry
+
+if your `-c,--command` may fail, and u need retry it. u can use https://npm.im/retry-cli
+
+```sh
+# install globally
+pnpm add -g retry-cli
+
+# add retry to `command-may-fail`
+x-args txt ./to-be-processed.txt -c $'retry -- command-may-fail \':line\''
+
+# retry times 1000, default: 10, see retry-cli homepage
+x-args txt ./to-be-processed.txt -c $'retry -n 1000 -- command-may-fail \':line\''
+```
+
 ## Changelog
 
 [CHANGELOG.md](CHANGELOG.md)
