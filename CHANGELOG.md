@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.4.1 2024-07-02
+
+### 🏡 Chores
+
+- Export SessionControl enum too - by **magicdawn** [<samp>(92872)</samp>](https://github.com/magicdawn/x-args/commit/92872e8)
+
 ## v1.4.0 2024-06-30
 
 ### 🚀 Features
