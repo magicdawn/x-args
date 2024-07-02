@@ -10,12 +10,6 @@ import superjson from 'superjson'
 import { z } from 'zod'
 import { boxen, fse } from '../libs'
 
-enum SessionControl {
-  Start = 'start',
-  ReStart = 'restart',
-  Continue = 'continue',
-}
-
 function inspectArray(arr: any[]) {
   return arr.map((x) => '`' + x.toString() + '`').join(' | ')
 }
@@ -63,6 +57,13 @@ export class TxtCommand extends Command {
       session: z.nativeEnum(SessionControl).parse(this.session),
     })
   }
+}
+
+// export for `startTxtCommand` args.sesssion
+export enum SessionControl {
+  Start = 'start',
+  ReStart = 'restart',
+  Continue = 'continue',
 }
 
 export type TxtCommandArgs = Pick<
