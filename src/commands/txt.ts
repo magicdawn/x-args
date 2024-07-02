@@ -6,6 +6,7 @@ import { isEqual } from 'lodash-es'
 import CircularBuffer from 'mnemonist/circular-buffer.js'
 import ms from 'ms'
 import path from 'path'
+import shellEscape from 'shell-escape'
 import superjson from 'superjson'
 import { z } from 'zod'
 import { boxen, fse } from '../libs'
@@ -30,8 +31,8 @@ export class TxtCommand extends Command {
     description: 'the command to execute',
   })
 
-  argsSplit = Option.String('-s,--split,--args-split', ' ', {
-    description: 'char to split a line, default using space',
+  argsSplit = Option.String('-s,--split,--args-split', String.raw`/\s+/`, {
+    description: `char to split a line, type: regex or string; default: ${String.raw`/\s+/`};`,
   })
 
   // for safty
@@ -52,6 +53,10 @@ export class TxtCommand extends Command {
   })
 
   execute(): Promise<number | void> {
+    let argsSplit: TxtCommandArgs['argsSplit'] = this.argsSplit
+    if (argsSplit.startsWith('/') && argsSplit.endsWith('/')) {
+      argsSplit = new RegExp(argsSplit.slice(1, -1))
+    }
     return startTxtCommand({
       ...this,
       session: z.nativeEnum(SessionControl).parse(this.session),
@@ -68,8 +73,8 @@ export enum SessionControl {
 
 export type TxtCommandArgs = Pick<
   TxtCommand,
-  'txt' | 'command' | 'argsSplit' | 'yes' | 'wait' | 'waitTimeout'
-> & { session: SessionControl }
+  'txt' | 'command' | 'yes' | 'wait' | 'waitTimeout'
+> & { session: SessionControl; argsSplit: string | RegExp }
 
 const lognsp = 'x-args:txt-command'
 
@@ -145,9 +150,9 @@ export async function startTxtCommand(args: TxtCommandArgs) {
 
       let cmd = command
       cmd = cmd.replace(/:args?(\d)/gi, (match, index) => {
-        return splitedArgs[index] ?? ''
+        return splitedArgs[index] ? shellEscape([splitedArgs[index]]) : ''
       })
-      cmd = cmd.replace(/:line/gi, line)
+      cmd = cmd.replace(/:line/gi, shellEscape([line]))
 
       console.log('')
       console.log(
