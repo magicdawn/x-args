@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.4.2 2024-07-02
+
+### 🐛 Fixes
+
+- Enum SessionControl should not use type export - by **magicdawn** [<samp>(6ac0f)</samp>](https://github.com/magicdawn/x-args/commit/6ac0fa2)
+
 ## v1.4.1 2024-07-02
 
 ### 🏡 Chores
