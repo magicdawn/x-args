@@ -65,7 +65,7 @@ if need single quote in `-c,--command`, u can use `-c $'command \'inside-a-quote
 
 #### `:line` / `:arg0`
 
-this will be auto escaped, no need to manual quote, just use plain `:line` / `arg0`
+this will be auto escaped, no need to manual quote, just use plain `:line` / `:arg0`
 
 ### retry
 
