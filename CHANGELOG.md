@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v1.5.0 2024-07-02
+
+### 🚀 Features
+
+- Default argsSplit change to /\s+/ - by **magicdawn** [<samp>(4d651)</samp>](https://github.com/magicdawn/x-args/commit/4d6514b)
+
+### 🏡 Chores
+
+- Use /\s+/ as default split & add shellEscape for :line/:args0 - by **magicdawn** [<samp>(35f9f)</samp>](https://github.com/magicdawn/x-args/commit/35f9f49)
+
 ## v1.4.2 2024-07-02
 
 ### 🐛 Fixes
