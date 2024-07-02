@@ -31,8 +31,8 @@ export class TxtCommand extends Command {
     description: 'the command to execute',
   })
 
-  argsSplit = Option.String('-s,--split,--args-split', String.raw`/\s+/`, {
-    description: `char to split a line, type: regex or string; default: ${String.raw`/\s+/`};`,
+  argsSplit = Option.String('-s,--split,--args-split', defaultTxtCommandArgs.argsSplit.toString(), {
+    description: `char to split a line, type: regex or string; default: ${defaultTxtCommandArgs.argsSplit.toString()};`,
   })
 
   // for safty
@@ -75,6 +75,11 @@ export type TxtCommandArgs = Pick<
   TxtCommand,
   'txt' | 'command' | 'yes' | 'wait' | 'waitTimeout'
 > & { session: SessionControl; argsSplit: string | RegExp }
+
+export const defaultTxtCommandArgs = {
+  session: SessionControl.Continue,
+  argsSplit: /\s+/,
+} satisfies Partial<TxtCommandArgs>
 
 const lognsp = 'x-args:txt-command'
 
