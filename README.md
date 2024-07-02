@@ -33,7 +33,7 @@ use `-t` to show available tokens
 
 ```sh
 # use :line
-x-args txt ./to-be-processed.txt -c $'echo \':line\''
+x-args txt ./to-be-processed.txt -c 'echo :line'
 ```
 
 features that native xargs does not have
@@ -46,7 +46,7 @@ features that native xargs does not have
 
 - use `:line` for whole line
 - use `:args0` / `:arg0` for single arg
-- use `-s` / `--split` / `--args-split` to specify how to turn `:line` to `:args0`, default using a space
+- use `-s` / `--split` / `--args-split` to specify how to turn `:line` to `:args0`, default using `/\s+/`
 
 when input is a filepath, and may contains space, use a different separator that has low possibility occurs in a filepath
 for example
@@ -58,18 +58,14 @@ for example
 
 ### `-c,--command`
 
-```bash
-# x-args glob file command
-x-args txt ./to-be-processed.txt -c $'echo :line'
-
-# if :line contains space, must be quoted
-x-args txt ./to-be-processed.txt -c $'echo \':line\''
-```
-
-a special shell syntax learn from zx, see
+if need single quote in `-c,--command`, u can use `-c $'command \'inside-a-quote\''`, a special shell syntax learn from zx, see
 
 - https://github.com/google/zx/blob/main/docs/quotes.md#quotes
 - https://stackoverflow.com/a/16605140
+
+#### `:line` / `:arg0`
+
+this will be auto escaped, no need to manual quote, just use plain `:line` / `arg0`
 
 ### retry
 
@@ -80,10 +76,10 @@ if your `-c,--command` may fail, and u need retry it. u can use https://npm.im/r
 pnpm add -g retry-cli
 
 # add retry to `command-may-fail`
-x-args txt ./to-be-processed.txt -c $'retry -- command-may-fail \':line\''
+x-args txt ./to-be-processed.txt -c 'retry -- command-may-fail :line'
 
 # retry times 1000, default: 10, see retry-cli homepage
-x-args txt ./to-be-processed.txt -c $'retry -n 1000 -- command-may-fail \':line\''
+x-args txt ./to-be-processed.txt -c 'retry -n 1000 -- command-may-fail :line'
 ```
 
 ## Changelog
