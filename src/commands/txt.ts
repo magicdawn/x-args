@@ -59,6 +59,7 @@ export class TxtCommand extends Command {
     }
     return startTxtCommand({
       ...this,
+      argsSplit,
       session: z.nativeEnum(SessionControl).parse(this.session),
     })
   }
