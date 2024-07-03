@@ -21,7 +21,8 @@
     "test": "mocha",
     "test-cover": "nyc --reporter=lcov --reporter=text mocha",
     "report-cover": "codecov",
-    "build:watch": "rm -rf lib; tsc -d -w"
+    "build:watch": "rm -rf lib; tsc -d -w",
+    "release": "release-it --only-version"
   },
   "repository": {
     "type": "git",

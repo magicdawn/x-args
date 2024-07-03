@@ -1,5 +1,4 @@
 import { type Config } from 'release-it'
-
 const defineConfig = (c: Config) => c
 
 export default defineConfig({
@@ -13,5 +12,8 @@ export default defineConfig({
   },
   npm: {
     publish: true,
+  },
+  hooks: {
+    'after:release': ['mc sync'],
   },
 })
