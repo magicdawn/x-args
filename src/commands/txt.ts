@@ -5,8 +5,8 @@ import delay from 'delay'
 import { isEqual } from 'lodash-es'
 import CircularBuffer from 'mnemonist/circular-buffer.js'
 import ms from 'ms'
+import { escapeShellArg } from 'needle-kit'
 import path from 'path'
-import shellEscape from 'shell-escape'
 import superjson from 'superjson'
 import { z } from 'zod'
 import { boxen, fse } from '../libs'
@@ -156,9 +156,9 @@ export async function startTxtCommand(args: TxtCommandArgs) {
 
       let cmd = command
       cmd = cmd.replace(/:args?(\d)/gi, (match, index) => {
-        return splitedArgs[index] ? shellEscape([splitedArgs[index]]) : ''
+        return splitedArgs[index] ? escapeShellArg(splitedArgs[index]) : ''
       })
-      cmd = cmd.replace(/:line/gi, shellEscape([line]))
+      cmd = cmd.replace(/:line/gi, escapeShellArg(line))
 
       console.log('')
       console.log(

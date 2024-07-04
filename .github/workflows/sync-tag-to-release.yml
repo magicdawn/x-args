@@ -1,4 +1,4 @@
-name: Release
+name: sync-tag-to-release
 
 on:
   push:
@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  release:
+  sync-tag-to-release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
