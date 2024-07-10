@@ -4,6 +4,7 @@ import { Builtins, Cli } from 'clipanion'
 import { createRequire } from 'module'
 import { PackageJson } from 'type-fest'
 import { DefaultCommand } from './commands/default'
+import { RunInPlatypusCommand } from './commands/run-in-platypus'
 import { TxtCommand } from './commands/txt'
 
 const require = createRequire(import.meta.url)
@@ -23,6 +24,7 @@ cli.register(Builtins.DefinitionsCommand)
 // more commands
 cli.register(TxtCommand)
 cli.register(DefaultCommand)
+cli.register(RunInPlatypusCommand)
 
 // run
 cli.runExit(args, Cli.defaultContext)
