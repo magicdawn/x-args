@@ -25,7 +25,10 @@ export class RunInPlatypusCommand extends Command {
     let err: Error | undefined
     let result: SyncResult | undefined
     try {
-      result = execaSync({ shell: true, stdio: 'inherit' })`${this.args}`
+      // if your original command is `foo --bar baz`, can `foo` is in $PATH
+      // `x-args run-in-platypus -- foo --bar baz` is OK, $PATH is inherited
+      // no shell: since `this.args` may contains `$PF` / `$QS`, should not be treated as shell variable
+      result = execaSync({ stdio: 'inherit' })`${this.args}`
     } catch (e) {
       err = e as Error
     }
