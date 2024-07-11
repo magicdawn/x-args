@@ -22,6 +22,9 @@ export class RunInPlatypusCommand extends Command {
     }
     console.log('[RunInPlatypusCommand] args = %O', this.args)
 
+    // NOTE: this can also be done/escaped with `child_process.execSync(escapeShellArgs(this.args))`
+    // execa has signal handling, don't know is it useful, let's see
+
     let err: Error | undefined
     let result: SyncResult | undefined
     try {
