@@ -180,8 +180,11 @@ export async function startTxtCommand(args: TxtCommandArgs) {
       }
 
       processed.add(line)
-      saveProcessed()
-      setProgramExitTs()
+
+      if (yes) {
+        saveProcessed()
+        setProgramExitTs()
+      }
     }
   }
 
