@@ -25,5 +25,5 @@ export abstract class BaseCommand extends Command {
     description: 'show available tokens',
   })
 
-  abstract execute(): Promise<number | void>
+  abstract override execute(): Promise<number | void>
 }

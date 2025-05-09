@@ -8,9 +8,9 @@ import { getFilenameTokens, printFilenameTokens, renderFilenameTokens } from '..
 
 // e.g x-args -f './*.*' -c $'cwebp :file -o \':dir/:name_compressed.:ext\''
 export class DefaultCommand extends BaseCommand {
-  static paths?: string[][] = [Command.Default]
+  static override paths?: string[][] = [Command.Default]
 
-  static usage: Usage = {
+  static override usage: Usage = {
     description: 'xargs',
   }
 
@@ -42,16 +42,12 @@ export class DefaultCommand extends BaseCommand {
     } else {
       resolvedFiles = fg.sync(files, { caseSensitiveMatch: !this.ignoreCase })
       console.log(
-        `${chalk.green('[globby]')}: docs ${chalk.blue(
-          'https://github.com/mrmlnc/fast-glob#pattern-syntax'
-        )}`
+        `${chalk.green('[globby]')}: docs ${chalk.blue('https://github.com/mrmlnc/fast-glob#pattern-syntax')}`,
       )
     }
 
     console.log(
-      `${chalk.green('[files]')}: mapping ${chalk.yellow(files)} to ${chalk.yellow(
-        resolvedFiles.length
-      )} files ->`
+      `${chalk.green('[files]')}: mapping ${chalk.yellow(files)} to ${chalk.yellow(resolvedFiles.length)} files ->`,
     )
     resolvedFiles.forEach((f) => {
       console.log(`  ${chalk.cyan(f)}`)
@@ -78,8 +74,8 @@ export class DefaultCommand extends BaseCommand {
       console.log('-'.repeat(80))
       console.log(
         `  current ${chalk.yellow('previewing')} commands. After comfirmed, append ${chalk.green(
-          '-y or --yes'
-        )} flag to execute`
+          '-y or --yes',
+        )} flag to execute`,
       )
       console.log('-'.repeat(80))
       console.log('')

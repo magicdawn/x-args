@@ -1,15 +1,18 @@
+import { subscribe, type Event as WatcherEvent } from '@parcel/watcher'
 import chalk from 'chalk'
 import { execSync } from 'child_process'
 import { Command, Option, Usage } from 'clipanion'
-import delay from 'delay'
-import { isEqual } from 'lodash-es'
+import { delay, isEqual, once } from 'es-toolkit'
+import mitt from 'mitt'
 import CircularBuffer from 'mnemonist/circular-buffer.js'
 import ms from 'ms'
 import { escapeShellArg } from 'needle-kit'
+import { pEvent } from 'p-event'
 import path from 'path'
 import superjson from 'superjson'
 import { z } from 'zod'
 import { boxen, fse } from '../libs'
+import { EventEmitter } from 'node:events'
 
 function inspectArray(arr: any[]) {
   return arr.map((x) => '`' + x.toString() + '`').join(' | ')
@@ -17,9 +20,9 @@ function inspectArray(arr: any[]) {
 
 // e.g x-args ./some.txt -c $'himg c -d :line -q 80'
 export class TxtCommand extends Command {
-  static paths?: string[][] = [['txt']]
+  static override paths?: string[][] = [['txt']]
 
-  static usage: Usage = {
+  static override usage: Usage = {
     description:
       'xargs txt <txt-file>, use `:line` as placeholder of a line of txt file, use  (`:arg0` or `:args0`) ... to replace a single value',
   }
@@ -72,10 +75,10 @@ export enum SessionControl {
   Continue = 'continue',
 }
 
-export type TxtCommandArgs = Pick<
-  TxtCommand,
-  'txt' | 'command' | 'yes' | 'wait' | 'waitTimeout'
-> & { session: SessionControl; argsSplit: string | RegExp }
+export type TxtCommandArgs = Pick<TxtCommand, 'txt' | 'command' | 'yes' | 'wait' | 'waitTimeout'> & {
+  session: SessionControl
+  argsSplit: string | RegExp
+}
 
 export const defaultTxtCommandArgs = {
   session: SessionControl.Continue,
@@ -103,9 +106,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
 
   if (sessionControl === SessionControl.Start) {
     if (fse.existsSync(sessionFile) && fse.readFileSync(sessionFile, 'utf-8').length) {
-      console.error(
-        `session already exists, use \`${SessionControl.Continue}\` or \`${SessionControl.ReStart}\``,
-      )
+      console.error(`session already exists, use \`${SessionControl.Continue}\` or \`${SessionControl.ReStart}\``)
       process.exit(1)
     }
   } else if (sessionControl === SessionControl.ReStart) {
@@ -188,7 +189,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
     }
   }
 
-  const waitTimeoutMs = waitTimeout ? ms(waitTimeout) : 0
+  const waitTimeoutMs = waitTimeout ? ms(waitTimeout as ms.StringValue) : 0
   if (isNaN(waitTimeoutMs)) {
     throw new Error('unrecognized --wait-timeout format, pls check https://npm.im/ms')
   }
@@ -203,26 +204,41 @@ export async function startTxtCommand(args: TxtCommandArgs) {
   getLineThenRunCommand()
 
   if (wait) {
-    const q = new CircularBuffer<boolean>(Array, 2)
-    q.push(true)
+    const emitter = new EventEmitter<{ default: [events: WatcherEvent[]]; error: [error: Error] }>()
+    const subscription = await subscribe(txtFile, (error, events) => {
+      if (error) return emitter.emit('error', error)
+      else return emitter.emit('default', events)
+    })
+
+    const unsubscribe = once(() => subscription.unsubscribe())
+    process.on('SIGINT', unsubscribe)
+    process.on('SIGTERM', unsubscribe)
+    process.on('exit', unsubscribe)
+
+    function waitChanged() {
+      return Promise.race(
+        [
+          // why `as any`: https://github.com/sindresorhus/p-event/issues/48
+          pEvent(emitter as any, ['default', 'error'], { rejectionEvents: [] }),
+          waitTimeoutMs ? delay(waitTimeoutMs + 1000) : undefined,
+        ].filter(Boolean),
+      )
+    }
+
+    function printNoNewItems() {
+      console.log()
+      console.info(`${chalk.green(`[${lognsp}:wait]`)} no new items, waiting for changes ...`)
+      console.log()
+    }
 
     while (Date.now() <= exitTs) {
-      await delay(2_000)
-
-      const hasLine = !!getTxtNextLine()
-      q.push(hasLine)
-
-      if (hasLine) {
-        getLineThenRunCommand()
-      } else {
-        // print only when [true,false]
-        const shouldPrint = isEqual(q.toArray(), [true, false])
-        if (shouldPrint) {
-          console.log()
-          console.info(`${chalk.green(`[${lognsp}:wait]`)} no new items, waiting for changes ...`)
-          console.log()
-        }
-      }
+      const hasNewLine = !!getTxtNextLine()
+      if (!hasNewLine) printNoNewItems()
+      await waitChanged()
+      getLineThenRunCommand()
     }
+
+    // exit
+    unsubscribe()
   }
 }

@@ -1,14 +1,14 @@
 import boxen from 'boxen'
 import { Command, Option, type Usage } from 'clipanion'
-import delay from 'delay'
+import { delay } from 'es-toolkit'
 import { execaSync, ExecaSyncError, type SyncResult } from 'execa'
 
 /**
  * what's this: https://github.com/sveinbjornt/Platypus/issues/274
  */
 export class RunInPlatypusCommand extends Command {
-  static paths?: string[][] | undefined = [['run-in-platypus'], ['platypus']]
-  static usage: Usage = {
+  static override paths?: string[][] | undefined = [['run-in-platypus'], ['platypus']]
+  static override usage: Usage = {
     description: 'run command in platypus',
   }
 
