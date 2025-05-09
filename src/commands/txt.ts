@@ -1,18 +1,17 @@
 import { subscribe, type Event as WatcherEvent } from '@parcel/watcher'
 import chalk from 'chalk'
 import { execSync } from 'child_process'
-import { Command, Option, Usage } from 'clipanion'
-import { delay, isEqual, once } from 'es-toolkit'
-import mitt from 'mitt'
-import CircularBuffer from 'mnemonist/circular-buffer.js'
+import type { Usage } from 'clipanion'
+import { Command, Option } from 'clipanion'
+import { delay, once } from 'es-toolkit'
 import ms from 'ms'
 import { escapeShellArg } from 'needle-kit'
+import { EventEmitter } from 'node:events'
 import { pEvent } from 'p-event'
 import path from 'path'
 import superjson from 'superjson'
 import { z } from 'zod'
 import { boxen, fse } from '../libs'
-import { EventEmitter } from 'node:events'
 
 function inspectArray(arr: any[]) {
   return arr.map((x) => '`' + x.toString() + '`').join(' | ')
@@ -155,7 +154,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
     let line: string | undefined
     while ((line = getTxtNextLine())) {
       worked = true
-      let splitedArgs = line.split(argsSplit)
+      const splitedArgs = line.split(argsSplit)
 
       let cmd = command
       cmd = cmd.replace(/:args?(\d)/gi, (match, index) => {

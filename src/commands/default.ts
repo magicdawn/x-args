@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import { execSync } from 'child_process'
-import { Command, Option, Usage } from 'clipanion'
+import type { Usage } from 'clipanion'
+import { Command, Option } from 'clipanion'
 import fg from 'fast-glob'
 import { PathFinder } from 'mac-helper'
 import { BaseCommand } from '../util/BaseCommand'
@@ -53,7 +54,7 @@ export class DefaultCommand extends BaseCommand {
       console.log(`  ${chalk.cyan(f)}`)
     })
 
-    for (let item of resolvedFiles) {
+    for (const item of resolvedFiles) {
       const tokens = getFilenameTokens(item)
       const usingCommand = renderFilenameTokens(this.command, tokens)
 

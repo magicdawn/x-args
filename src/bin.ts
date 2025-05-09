@@ -2,7 +2,7 @@
 
 import { Builtins, Cli } from 'clipanion'
 import { createRequire } from 'module'
-import { PackageJson } from 'type-fest'
+import type { PackageJson } from 'type-fest'
 import { DefaultCommand } from './commands/default'
 import { RunInPlatypusCommand } from './commands/run-in-platypus'
 import { TxtCommand } from './commands/txt'
