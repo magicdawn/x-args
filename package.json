@@ -1,6 +1,6 @@
 {
   "name": "@magicdawn/x-args",
-  "version": "1.5.4",
+  "version": "1.6.0",
   "description": "play with cli commands like a composer",
   "type": "module",
   "main": "dist/index.js",
