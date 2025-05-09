@@ -151,8 +151,10 @@ export async function startTxtCommand(args: TxtCommandArgs) {
   }
 
   function getLineThenRunCommand() {
+    let worked = false
     let line: string | undefined
     while ((line = getTxtNextLine())) {
+      worked = true
       let splitedArgs = line.split(argsSplit)
 
       let cmd = command
@@ -187,6 +189,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
         setProgramExitTs()
       }
     }
+    return worked
   }
 
   const waitTimeoutMs = waitTimeout ? ms(waitTimeout as ms.StringValue) : 0
@@ -205,9 +208,13 @@ export async function startTxtCommand(args: TxtCommandArgs) {
 
   if (wait) {
     const emitter = new EventEmitter<{ default: [events: WatcherEvent[]]; error: [error: Error] }>()
-    const subscription = await subscribe(txtFile, (error, events) => {
-      if (error) return emitter.emit('error', error)
-      else return emitter.emit('default', events)
+    const subscription = await subscribe(path.dirname(txtFile), (error, events) => {
+      if (error) {
+        return emitter.emit('error', error)
+      }
+      if (events.some((item) => item.path === txtFile)) {
+        return emitter.emit('default', events)
+      }
     })
 
     const unsubscribe = once(() => subscription.unsubscribe())
@@ -231,11 +238,14 @@ export async function startTxtCommand(args: TxtCommandArgs) {
       console.log()
     }
 
+    let prevWorked = true
     while (Date.now() <= exitTs) {
-      const hasNewLine = !!getTxtNextLine()
-      if (!hasNewLine) printNoNewItems()
+      if (prevWorked) {
+        const hasNewLine = !!getTxtNextLine()
+        if (!hasNewLine) printNoNewItems()
+      }
       await waitChanged()
-      getLineThenRunCommand()
+      prevWorked = getLineThenRunCommand()
     }
 
     // exit
