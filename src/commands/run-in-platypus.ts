@@ -36,16 +36,14 @@ export class RunInPlatypusCommand extends Command {
       err = e as Error
     }
 
-    if (err instanceof ExecaSyncError) {
-      if (err.isTerminated) {
-        // SIGFPE 'Floating point arithmetic error'
-        console.error(
-          '[RunInPlatypusCommand] terminated: signal => %s, signalDescription => %s',
-          err.signal,
-          err.signalDescription,
-        )
-        throw err
-      }
+    if (err instanceof ExecaSyncError && err.isTerminated) {
+      // SIGFPE 'Floating point arithmetic error'
+      console.error(
+        '[RunInPlatypusCommand] terminated: signal => %s, signalDescription => %s',
+        err.signal,
+        err.signalDescription,
+      )
+      throw err
     }
 
     // do not quit when error
@@ -58,7 +56,7 @@ export class RunInPlatypusCommand extends Command {
       // ALERT:Hello|World\n
       // NOTIFICATION:My title|My text\n
       console.log()
-      console.log('ALERT:Error|' + (err.stack || err.message || '').split('\n')[0])
+      console.log(`ALERT:Error|${(err.stack || err.message || '').split('\n')[0]}`)
       console.log()
 
       // The maximum value for a 32-bit signed integer is 2147483647 milliseconds, which is roughly 24.8 days.

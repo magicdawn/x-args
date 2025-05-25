@@ -1,20 +1,20 @@
+import { execSync } from 'node:child_process'
+import { EventEmitter } from 'node:events'
+import path from 'node:path'
 import { subscribe, type Event as WatcherEvent } from '@parcel/watcher'
 import chalk from 'chalk'
-import { execSync } from 'child_process'
-import type { Usage } from 'clipanion'
 import { Command, Option } from 'clipanion'
 import { delay, once } from 'es-toolkit'
 import ms from 'ms'
 import { escapeShellArg } from 'needle-kit'
-import { EventEmitter } from 'node:events'
 import { pEvent } from 'p-event'
-import path from 'path'
 import superjson from 'superjson'
 import { z } from 'zod'
 import { boxen, fse } from '../libs'
+import type { Usage } from 'clipanion'
 
 function inspectArray(arr: any[]) {
-  return arr.map((x) => '`' + x.toString() + '`').join(' | ')
+  return arr.map((x) => `\`${x.toString()}\``).join(' | ')
 }
 
 // e.g x-args ./some.txt -c $'himg c -d :line -q 80'
@@ -94,7 +94,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
   console.log('')
   console.log(`${chalk.green('[x-args]')}: received`)
   console.log(`   ${chalk.cyan('txt file')}: ${chalk.yellow(txtFile)}`)
-  console.log(` ${chalk.cyan('args split')}: ${chalk.yellow('`' + argsSplit + '`')}`)
+  console.log(` ${chalk.cyan('args split')}: ${chalk.yellow(`\`${argsSplit}\``)}`)
   console.log(`    ${chalk.cyan('command')}: ${chalk.yellow(command)}`)
   console.log('')
 
@@ -112,21 +112,19 @@ export async function startTxtCommand(args: TxtCommandArgs) {
     if (fse.existsSync(sessionFile)) {
       fse.removeSync(sessionFile)
     }
-  } else if (sessionControl === SessionControl.Continue) {
-    if (fse.existsSync(sessionFile)) {
-      const content = fse.readFileSync(sessionFile, 'utf-8')
-      if (content) {
-        let _processed: Set<string> | undefined
-        try {
-          const parsed = superjson.parse<{ processed: Set<string> }>(content)
-          _processed = parsed.processed
-        } catch (e) {
-          // noop
-        }
-        if (_processed) {
-          processed = new Set(_processed)
-          console.info(`${chalk.green(`[${lognsp}:session]`)} loaded from file %s`, sessionFile)
-        }
+  } else if (sessionControl === SessionControl.Continue && fse.existsSync(sessionFile)) {
+    const content = fse.readFileSync(sessionFile, 'utf-8')
+    if (content) {
+      let _processed: Set<string> | undefined
+      try {
+        const parsed = superjson.parse<{ processed: Set<string> }>(content)
+        _processed = parsed.processed
+      } catch {
+        // noop
+      }
+      if (_processed) {
+        processed = new Set(_processed)
+        console.info(`${chalk.green(`[${lognsp}:session]`)} loaded from file %s`, sessionFile)
       }
     }
   }
@@ -157,10 +155,10 @@ export async function startTxtCommand(args: TxtCommandArgs) {
       const splitedArgs = line.split(argsSplit)
 
       let cmd = command
-      cmd = cmd.replace(/:args?(\d)/gi, (match, index) => {
+      cmd = cmd.replaceAll(/:args?(\d)/gi, (match, index) => {
         return splitedArgs[index] ? escapeShellArg(splitedArgs[index]) : ''
       })
-      cmd = cmd.replace(/:line/gi, escapeShellArg(line))
+      cmd = cmd.replaceAll(/:line/gi, escapeShellArg(line))
 
       console.log('')
       console.log(
@@ -192,8 +190,8 @@ export async function startTxtCommand(args: TxtCommandArgs) {
   }
 
   const waitTimeoutMs = waitTimeout ? ms(waitTimeout as ms.StringValue) : 0
-  if (isNaN(waitTimeoutMs)) {
-    throw new Error('unrecognized --wait-timeout format, pls check https://npm.im/ms')
+  if (Number.isNaN(waitTimeoutMs)) {
+    throw new TypeError('unrecognized --wait-timeout format, pls check https://npm.im/ms')
   }
 
   let exitTs = Infinity

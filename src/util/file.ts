@@ -1,5 +1,5 @@
+import path from 'node:path'
 import chalk from 'chalk'
-import path from 'path'
 
 export interface FilenameTokens {
   fullpath: string
@@ -50,7 +50,7 @@ export function renderFilenameTokens(template: string, options: FilenameTokens) 
   for (const t of tokens) {
     const val = options[t.slice(1) as keyof FilenameTokens]
     if (!val) continue
-    result = result.replace(new RegExp(t, 'g'), val)
+    result = result.replaceAll(new RegExp(t, 'g'), val)
   }
 
   return result

@@ -1,11 +1,11 @@
+import { execSync } from 'node:child_process'
 import chalk from 'chalk'
-import { execSync } from 'child_process'
-import type { Usage } from 'clipanion'
 import { Command, Option } from 'clipanion'
 import fg from 'fast-glob'
 import { PathFinder } from 'mac-helper'
 import { BaseCommand } from '../util/BaseCommand'
 import { getFilenameTokens, printFilenameTokens, renderFilenameTokens } from '../util/file'
+import type { Usage } from 'clipanion'
 
 // e.g x-args -f './*.*' -c $'cwebp :file -o \':dir/:name_compressed.:ext\''
 export class DefaultCommand extends BaseCommand {
