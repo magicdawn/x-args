@@ -11,6 +11,7 @@ import { pEvent } from 'p-event'
 import superjson from 'superjson'
 import { z } from 'zod'
 import { boxen, fse } from '../libs'
+import { parseLineToArgs } from '../util/parse-line'
 import type { Usage } from 'clipanion'
 
 function inspectArray(arr: any[]) {
@@ -33,9 +34,9 @@ export class TxtCommand extends Command {
     description: 'the command to execute',
   })
 
-  argsSplit = Option.String('-s,--split,--args-split', defaultTxtCommandArgs.argsSplit.toString(), {
-    description: `char to split a line, type: regex or string; default: ${defaultTxtCommandArgs.argsSplit.toString()};`,
-  })
+  // argsSplit = Option.String('-s,--split,--args-split', defaultTxtCommandArgs.argsSplit.toString(), {
+  //   description: `char to split a line, type: regex or string; default: ${defaultTxtCommandArgs.argsSplit.toString()};`,
+  // })
 
   // for safty
   yes = Option.Boolean('-y,--yes', false, {
@@ -55,13 +56,8 @@ export class TxtCommand extends Command {
   })
 
   execute(): Promise<number | void> {
-    let argsSplit: TxtCommandArgs['argsSplit'] = this.argsSplit
-    if (argsSplit.startsWith('/') && argsSplit.endsWith('/')) {
-      argsSplit = new RegExp(argsSplit.slice(1, -1))
-    }
     return startTxtCommand({
       ...this,
-      argsSplit,
       session: z.nativeEnum(SessionControl).parse(this.session),
     })
   }
@@ -76,25 +72,22 @@ export enum SessionControl {
 
 export type TxtCommandArgs = Pick<TxtCommand, 'txt' | 'command' | 'yes' | 'wait' | 'waitTimeout'> & {
   session: SessionControl
-  argsSplit: string | RegExp
 }
 
 export const defaultTxtCommandArgs = {
   session: SessionControl.Continue,
-  argsSplit: /\s+/,
 } satisfies Partial<TxtCommandArgs>
 
 const lognsp = 'x-args:txt-command'
 
 export async function startTxtCommand(args: TxtCommandArgs) {
-  const { txt, command, argsSplit, wait, waitTimeout, yes } = args
+  const { txt, command, wait, waitTimeout, yes } = args
 
   const txtFile = path.resolve(txt)
 
   console.log('')
   console.log(`${chalk.green('[x-args]')}: received`)
   console.log(`   ${chalk.cyan('txt file')}: ${chalk.yellow(txtFile)}`)
-  console.log(` ${chalk.cyan('args split')}: ${chalk.yellow(`\`${argsSplit}\``)}`)
   console.log(`    ${chalk.cyan('command')}: ${chalk.yellow(command)}`)
   console.log('')
 
@@ -152,13 +145,13 @@ export async function startTxtCommand(args: TxtCommandArgs) {
     let line: string | undefined
     while ((line = getTxtNextLine())) {
       worked = true
-      const splitedArgs = line.split(argsSplit)
 
-      let cmd = command
-      cmd = cmd.replaceAll(/:args?(\d)/gi, (match, index) => {
-        return splitedArgs[index] ? escapeShellArg(splitedArgs[index]) : ''
-      })
-      cmd = cmd.replaceAll(/:line/gi, escapeShellArg(line))
+      const splitedArgs = parseLineToArgs(line)
+      const cmd = command
+        .replaceAll(/:rawLine/gi, line)
+        .replaceAll(/:line/gi, escapeShellArg(line))
+        .replaceAll(/:rawArgs?(\d)/gi, (match, index) => splitedArgs[index] || '')
+        .replaceAll(/:args?(\d)/gi, (match, index) => (splitedArgs[index] ? escapeShellArg(splitedArgs[index]) : ''))
 
       console.log('')
       console.log(
