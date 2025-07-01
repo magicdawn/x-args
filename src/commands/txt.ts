@@ -1,13 +1,12 @@
 import { execSync } from 'node:child_process'
-import { EventEmitter } from 'node:events'
 import path from 'node:path'
 import { subscribe, type Event as WatcherEvent } from '@parcel/watcher'
 import chalk from 'chalk'
 import { Command, Option } from 'clipanion'
+import Emittery from 'emittery'
 import { delay, once } from 'es-toolkit'
 import ms from 'ms'
 import { escapeShellArg } from 'needle-kit'
-import { pEvent } from 'p-event'
 import superjson from 'superjson'
 import { z } from 'zod'
 import { boxen, fse } from '../libs'
@@ -197,7 +196,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
   getLineThenRunCommand()
 
   if (wait) {
-    const emitter = new EventEmitter<{ default: [events: WatcherEvent[]]; error: [error: Error] }>()
+    const emitter = new Emittery<{ default: WatcherEvent[]; error: Error }>()
     const subscription = await subscribe(path.dirname(txtFile), (error, events) => {
       if (error) {
         return emitter.emit('error', error)
@@ -214,11 +213,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
 
     function waitChanged() {
       return Promise.race(
-        [
-          // why `as any`: https://github.com/sindresorhus/p-event/issues/48
-          pEvent(emitter as any, ['default', 'error'], { rejectionEvents: [] }),
-          waitTimeoutMs ? delay(waitTimeoutMs + 1000) : undefined,
-        ].filter(Boolean),
+        [emitter.once(['default', 'error']), waitTimeoutMs ? delay(waitTimeoutMs + 1000) : undefined].filter(Boolean),
       )
     }
 
