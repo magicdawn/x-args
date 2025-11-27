@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process'
+import { execSync, type ExecSyncOptionsWithBufferEncoding } from 'node:child_process'
 import path from 'node:path'
 import { subscribe, type Event as WatcherEvent } from '@parcel/watcher'
 import chalk from 'chalk'
@@ -69,18 +69,19 @@ export enum SessionControl {
   Continue = 'continue',
 }
 
-export type TxtCommandArgs = Pick<TxtCommand, 'txt' | 'command' | 'yes' | 'wait' | 'waitTimeout'> & {
+export type TxtCommandContext = Pick<TxtCommand, 'txt' | 'command' | 'yes' | 'wait' | 'waitTimeout'> & {
   session: SessionControl
+  execOptions?: Partial<ExecSyncOptionsWithBufferEncoding>
 }
 
-export const defaultTxtCommandArgs = {
+export const defaultTxtCommandContext = {
   session: SessionControl.Continue,
-} satisfies Partial<TxtCommandArgs>
+} satisfies Partial<TxtCommandContext>
 
 const lognsp = 'x-args:txt-command'
 
-export async function startTxtCommand(args: TxtCommandArgs) {
-  const { txt, command, wait, waitTimeout, yes } = args
+export async function startTxtCommand(ctx: TxtCommandContext) {
+  const { txt, command, wait, waitTimeout, yes, execOptions } = ctx
 
   const txtFile = path.resolve(txt)
 
@@ -90,7 +91,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
   console.log(`    ${chalk.cyan('command')}: ${chalk.yellow(command)}`)
   console.log('')
 
-  const sessionControl = args.session as SessionControl
+  const sessionControl = ctx.session as SessionControl
   const sessionFile = path.join(path.dirname(txtFile), `.x-args-session.${path.basename(txtFile)}`)
 
   let processed = new Set<string>()
@@ -127,7 +128,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
 
   // live edit support: start with 1 line
   function getTxtNextLine() {
-    const content = fse.readFileSync(txtFile, 'utf8')
+    const content = fse.readFileSync(txtFile, 'utf-8')
 
     const lines = content
       .split('\n')
@@ -168,7 +169,7 @@ export async function startTxtCommand(args: TxtCommandArgs) {
       )
 
       if (yes) {
-        execSync(cmd, { stdio: 'inherit' })
+        execSync(cmd, { stdio: 'inherit', ...execOptions })
       }
 
       processed.add(line)
