@@ -46,7 +46,7 @@ export class TxtCommand extends Command {
     description: 'wait new items when queue empty',
   })
 
-  waitTimeout = Option.String('--wait-timeout,--WT', {
+  waitTimeout? = Option.String('--wait-timeout,--WT', {
     description: 'wait timeout, will pass to ms()',
   })
 
@@ -199,11 +199,10 @@ export async function startTxtCommand(ctx: TxtCommandContext) {
   if (wait) {
     const emitter = new Emittery<{ change: undefined }>()
     const watcher = watch(txtFile).on('change', () => emitter.emit('change'))
-
-    const unsubscribe = once(() => watcher.close())
-    process.on('SIGINT', unsubscribe)
-    process.on('SIGTERM', unsubscribe)
-    process.on('exit', unsubscribe)
+    const unwatch = once(() => watcher.close())
+    process.on('SIGINT', unwatch)
+    process.on('SIGTERM', unwatch)
+    process.on('exit', unwatch)
 
     function waitChanged() {
       return Promise.race(
@@ -228,6 +227,6 @@ export async function startTxtCommand(ctx: TxtCommandContext) {
     }
 
     // exit
-    unsubscribe()
+    unwatch()
   }
 }
