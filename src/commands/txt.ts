@@ -1,7 +1,7 @@
 import { execSync, type ExecSyncOptionsWithBufferEncoding } from 'node:child_process'
 import path from 'node:path'
-import { subscribe, type Event as WatcherEvent } from '@parcel/watcher'
 import chalk from 'chalk'
+import { watch } from 'chokidar'
 import { Command, Option } from 'clipanion'
 import Emittery from 'emittery'
 import { delay, once } from 'es-toolkit'
@@ -197,24 +197,17 @@ export async function startTxtCommand(ctx: TxtCommandContext) {
   getLineThenRunCommand()
 
   if (wait) {
-    const emitter = new Emittery<{ default: WatcherEvent[]; error: Error }>()
-    const subscription = await subscribe(path.dirname(txtFile), (error, events) => {
-      if (error) {
-        return emitter.emit('error', error)
-      }
-      if (events.some((item) => item.path === txtFile)) {
-        return emitter.emit('default', events)
-      }
-    })
+    const emitter = new Emittery<{ change: undefined }>()
+    const watcher = watch(txtFile).on('change', () => emitter.emit('change'))
 
-    const unsubscribe = once(() => subscription.unsubscribe())
+    const unsubscribe = once(() => watcher.close())
     process.on('SIGINT', unsubscribe)
     process.on('SIGTERM', unsubscribe)
     process.on('exit', unsubscribe)
 
     function waitChanged() {
       return Promise.race(
-        [emitter.once(['default', 'error']), waitTimeoutMs ? delay(waitTimeoutMs + 1000) : undefined].filter(Boolean),
+        [emitter.once('change'), waitTimeoutMs ? delay(waitTimeoutMs + 1000) : undefined].filter(Boolean),
       )
     }
 
