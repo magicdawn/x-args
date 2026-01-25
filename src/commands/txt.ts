@@ -2,7 +2,7 @@ import { execSync, type ExecSyncOptionsWithBufferEncoding } from 'node:child_pro
 import path from 'node:path'
 import chalk from 'chalk'
 import { watch } from 'chokidar'
-import { Command, Option } from 'clipanion'
+import { Command, Option, type Usage } from 'clipanion'
 import Emittery from 'emittery'
 import { delay, once } from 'es-toolkit'
 import ms from 'ms'
@@ -11,7 +11,6 @@ import superjson from 'superjson'
 import { z } from 'zod'
 import { boxen, fse } from '../libs'
 import { parseLineToArgs } from '../util/parse-line'
-import type { Usage } from 'clipanion'
 
 function inspectArray(arr: any[]) {
   return arr.map((x) => `\`${x.toString()}\``).join(' | ')
@@ -97,7 +96,7 @@ export async function startTxtCommand(ctx: TxtCommandContext) {
   let processed = new Set<string>()
 
   if (sessionControl === SessionControl.Start) {
-    if (fse.existsSync(sessionFile) && fse.readFileSync(sessionFile, 'utf-8').length) {
+    if (fse.existsSync(sessionFile) && fse.readFileSync(sessionFile, 'utf8').length) {
       console.error(`session already exists, use \`${SessionControl.Continue}\` or \`${SessionControl.ReStart}\``)
       process.exit(1)
     }
@@ -106,7 +105,7 @@ export async function startTxtCommand(ctx: TxtCommandContext) {
       fse.removeSync(sessionFile)
     }
   } else if (sessionControl === SessionControl.Continue && fse.existsSync(sessionFile)) {
-    const content = fse.readFileSync(sessionFile, 'utf-8')
+    const content = fse.readFileSync(sessionFile, 'utf8')
     if (content) {
       let _processed: Set<string> | undefined
       try {
@@ -128,7 +127,7 @@ export async function startTxtCommand(ctx: TxtCommandContext) {
 
   // live edit support: start with 1 line
   function getTxtNextLine() {
-    const content = fse.readFileSync(txtFile, 'utf-8')
+    const content = fse.readFileSync(txtFile, 'utf8')
 
     const lines = content
       .split('\n')
