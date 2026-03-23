@@ -31,8 +31,7 @@ export class DefaultCommand extends BaseCommand {
     console.log(`${chalk.cyan('command')}: ${chalk.yellow(command)}`)
     console.log('')
 
-    let resolvedFiles: string[] = []
-
+    let resolvedFiles: string[]
     if (files === '$PF') {
       resolvedFiles = await PathFinder.allSelected()
       if (!resolvedFiles.length) {

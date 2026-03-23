@@ -199,9 +199,12 @@ export async function startTxtCommand(ctx: TxtCommandContext) {
     const emitter = new Emittery<{ change: undefined }>()
     const watcher = watch(txtFile).on('change', () => emitter.emit('change'))
     const unwatch = once(() => watcher.close())
-    process.on('SIGINT', unwatch)
-    process.on('SIGTERM', unwatch)
+
     process.on('exit', unwatch)
+    // 大多数情况下：不需要为了 unwatch 专门监听 SIGINT。
+    // 只有当你的 unwatch 涉及“非自动释放资源”时，才有必要。
+    // process.on('SIGINT', unwatch)
+    // process.on('SIGTERM', unwatch)
 
     function waitChanged() {
       return Promise.race(
