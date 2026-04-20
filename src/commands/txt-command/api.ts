@@ -208,6 +208,13 @@ async function runSingleLine(
     args: splitedArgs,
   }
 
+  const runCommandSync = (cmd: string) =>
+    execSync(cmd, {
+      stdio: 'inherit',
+      cwd: path.dirname(txtFile), // set default cwd to txt file
+      ...execOptions,
+    })
+
   const headerBox = (cmdOrRun: string) => {
     return boxen(
       [
@@ -224,11 +231,7 @@ async function runSingleLine(
 
   // use in-process callback
   if (run) {
-    const runContext: RunContext = {
-      ...commandBuilderContext,
-      runCommandSync: (cmd) => execSync(cmd, { stdio: 'inherit', ...execOptions }),
-      txtFile,
-    }
+    const runContext: RunContext = { ...commandBuilderContext, runCommandSync, txtFile }
     console.log('')
     console.log(headerBox(`${chalk.green('  run =>')} funciton-name:${chalk.yellow(run.name)}`))
     if (yes) {
@@ -245,11 +248,7 @@ async function runSingleLine(
     console.log('')
     console.log(headerBox(`${chalk.green('  cmd =>')} ${chalk.yellow(cmd)}`))
     if (yes) {
-      execSync(cmd, {
-        stdio: 'inherit',
-        cwd: path.dirname(txtFile), // set default cwd to txt file
-        ...execOptions,
-      })
+      runCommandSync(cmd)
     }
   }
 
