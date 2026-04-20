@@ -1,6 +1,6 @@
 import { Command, Option, type Usage } from 'clipanion'
 import { z } from 'zod'
-import { SessionControl, startTxtCommand } from './main'
+import { SessionControl, startTxtCommand } from './api'
 
 function inspectArray(arr: any[]) {
   return arr.map((x) => `\`${x.toString()}\``).join(' | ')
@@ -15,7 +15,7 @@ export class TxtCommand extends Command {
       'xargs txt <txt-file>, use `:line` as placeholder of a line of txt file, use  (`:arg0` or `:args0`) ... to replace a single value',
   }
 
-  txt = Option.String({ name: 'txt', required: true })
+  txtFiles = Option.Rest({ name: 'txt-files', required: 1 })
 
   command = Option.String('-c,--command', {
     required: true,
@@ -44,6 +44,9 @@ export class TxtCommand extends Command {
   })
 
   execute(): Promise<number | void> {
-    return startTxtCommand({ ...this, session: z.enum(SessionControl).parse(this.session) })
+    return startTxtCommand({
+      ...this,
+      session: z.enum(SessionControl).parse(this.session),
+    })
   }
 }
