@@ -7,4 +7,7 @@ export default defineConfig({
   clean: true,
   target: 'node18',
   fixedExtension: false,
+  deps: {
+    skipNodeModulesBundle: true,
+  },
 })
