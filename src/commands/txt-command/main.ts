@@ -1,65 +1,16 @@
+import assert from 'node:assert'
 import { execSync, type ExecSyncOptionsWithBufferEncoding } from 'node:child_process'
 import path from 'node:path'
 import chalk from 'chalk'
 import { watch } from 'chokidar'
-import { Command, Option, type Usage } from 'clipanion'
 import Emittery from 'emittery'
 import { delay, once } from 'es-toolkit'
 import ms from 'ms'
-import { escapeShellArg } from 'needle-kit'
+import { quote } from 'shlex'
 import superjson from 'superjson'
-import { z } from 'zod'
-import { boxen, fse } from '../libs'
-import { parseLineToArgs } from '../util/parse-line'
-
-function inspectArray(arr: any[]) {
-  return arr.map((x) => `\`${x.toString()}\``).join(' | ')
-}
-
-// e.g x-args ./some.txt -c $'himg c -d :line -q 80'
-export class TxtCommand extends Command {
-  static override paths?: string[][] = [['txt']]
-
-  static override usage: Usage = {
-    description:
-      'xargs txt <txt-file>, use `:line` as placeholder of a line of txt file, use  (`:arg0` or `:args0`) ... to replace a single value',
-  }
-
-  txt = Option.String({ name: 'txt', required: true })
-
-  command = Option.String('-c,--command', {
-    required: true,
-    description: 'the command to execute',
-  })
-
-  // argsSplit = Option.String('-s,--split,--args-split', defaultTxtCommandArgs.argsSplit.toString(), {
-  //   description: `char to split a line, type: regex or string; default: ${defaultTxtCommandArgs.argsSplit.toString()};`,
-  // })
-
-  // for safty
-  yes = Option.Boolean('-y,--yes', false, {
-    description: 'exec commands, default false(only preview commands, aka dry run)',
-  })
-
-  wait = Option.Boolean('-w,--wait', false, {
-    description: 'wait new items when queue empty',
-  })
-
-  waitTimeout? = Option.String('--wait-timeout,--WT', {
-    description: 'wait timeout, will pass to ms()',
-  })
-
-  session = Option.String('--session', SessionControl.Continue, {
-    description: `session handling: default \`${SessionControl.Continue}\`; allowed values: ${inspectArray(Object.values(SessionControl))};`,
-  })
-
-  execute(): Promise<number | void> {
-    return startTxtCommand({
-      ...this,
-      session: z.nativeEnum(SessionControl).parse(this.session),
-    })
-  }
-}
+import { boxen, fse } from '../../libs'
+import { parseLineToArgs } from '../../util/parse-line'
+import type { TxtCommand } from '.'
 
 // export for `startTxtCommand` args.sesssion
 export enum SessionControl {
@@ -68,29 +19,59 @@ export enum SessionControl {
   Continue = 'continue',
 }
 
-export type TxtCommandContext = Pick<TxtCommand, 'txt' | 'command' | 'yes' | 'wait' | 'waitTimeout'> & {
+export type CommandBuilderContext = {
+  // unquoted
+  rawLine: string
+  rawArgs: string[]
+  // quoted
+  line: string
+  args: string[]
+}
+
+export function applyCommandTemplate(command: string, ctx: CommandBuilderContext) {
+  const { rawLine, rawArgs, line, args } = ctx
+  return command
+    .replaceAll(/:rawLine/gi, rawLine)
+    .replaceAll(/:line/gi, line)
+    .replaceAll(/:rawArgs?(\d)/gi, (match, index) => rawArgs[index])
+    .replaceAll(/:args?(\d)/gi, (match, index) => args[index])
+}
+
+export interface RunContext extends CommandBuilderContext {
+  applyCommandTemplate: typeof applyCommandTemplate
+  quote: typeof quote
+  runCommandSync: (command: string) => void
+}
+
+export interface StartTxtCommandOptions extends Pick<TxtCommand, 'txt' | 'yes' | 'wait' | 'waitTimeout'> {
   session: SessionControl
   execOptions?: Partial<ExecSyncOptionsWithBufferEncoding>
+  command?: string | ((ctx: CommandBuilderContext) => string)
+  run?: (ctx: CommandBuilderContext) => void | Promise<void>
 }
 
 export const defaultTxtCommandContext = {
   session: SessionControl.Continue,
-} satisfies Partial<TxtCommandContext>
+} satisfies Partial<StartTxtCommandOptions>
 
 const lognsp = 'x-args:txt-command'
 
-export async function startTxtCommand(ctx: TxtCommandContext) {
-  const { txt, command, wait, waitTimeout, yes, execOptions } = ctx
+function assertCommandOrRun({ command, run }: Pick<StartTxtCommandOptions, 'command' | 'run'>) {
+  assert(command || run, 'command and run cannot both be undefined')
+}
 
+export async function startTxtCommand(opts: StartTxtCommandOptions) {
+  assertCommandOrRun(opts)
+  const { txt, wait, waitTimeout, yes, command, execOptions, run } = opts
   const txtFile = path.resolve(txt)
 
   console.log('')
   console.log(`${chalk.green('[x-args]')}: received`)
   console.log(`   ${chalk.cyan('txt file')}: ${chalk.yellow(txtFile)}`)
-  console.log(`    ${chalk.cyan('command')}: ${chalk.yellow(command)}`)
+  if (command && typeof command === 'string') console.log(`    ${chalk.cyan('command')}: ${chalk.yellow(command)}`)
   console.log('')
 
-  const sessionControl = ctx.session as SessionControl
+  const sessionControl = opts.session as SessionControl
   const sessionFile = path.join(path.dirname(txtFile), `.x-args-session.${path.basename(txtFile)}`)
 
   let processed = new Set<string>()
@@ -139,40 +120,13 @@ export async function startTxtCommand(ctx: TxtCommandContext) {
     if (lines.length) return lines[0]
   }
 
-  function getLineThenRunCommand() {
+  async function getLineThenRunCommand() {
     let worked = false
     let line: string | undefined
     while ((line = getTxtNextLine())) {
       worked = true
-
-      const splitedArgs = parseLineToArgs(line)
-      const cmd = command
-        .replaceAll(/:rawLine/gi, line)
-        .replaceAll(/:line/gi, escapeShellArg(line))
-        .replaceAll(/:rawArgs?(\d)/gi, (match, index) => splitedArgs[index] || '')
-        .replaceAll(/:args?(\d)/gi, (match, index) => (splitedArgs[index] ? escapeShellArg(splitedArgs[index]) : ''))
-
-      console.log('')
-      console.log(
-        boxen(
-          [
-            //
-            `${chalk.green(' line =>')} ${chalk.yellow(line.padEnd(70, ' '))}`,
-            `${chalk.green('  cmd =>')} ${chalk.yellow(cmd)}`,
-          ].join('\n'),
-          {
-            borderColor: 'green',
-            title: chalk.green(`${lognsp}:line`),
-          },
-        ),
-      )
-
-      if (yes) {
-        execSync(cmd, { stdio: 'inherit', ...execOptions })
-      }
-
+      await runSingleLine(line, { yes, command, run, execOptions })
       processed.add(line)
-
       if (yes) {
         saveProcessed()
         setProgramExitTs()
@@ -193,7 +147,7 @@ export async function startTxtCommand(ctx: TxtCommandContext) {
     }
   }
 
-  getLineThenRunCommand()
+  await getLineThenRunCommand()
 
   if (wait) {
     const emitter = new Emittery<{ change: undefined }>()
@@ -225,10 +179,73 @@ export async function startTxtCommand(ctx: TxtCommandContext) {
         if (!hasNewLine) printNoNewItems()
       }
       await waitChanged()
-      prevWorked = getLineThenRunCommand()
+      prevWorked = await getLineThenRunCommand()
     }
 
     // exit
     unwatch()
+  }
+}
+
+async function runSingleLine(
+  line: string,
+  { yes, command, run, execOptions }: Pick<StartTxtCommandOptions, 'yes' | 'command' | 'run' | 'execOptions'>,
+) {
+  assertCommandOrRun({ command, run })
+  const splitedArgs = parseLineToArgs(line)
+  const commandBuilderContext: CommandBuilderContext = {
+    rawLine: line,
+    rawArgs: splitedArgs,
+    line: quote(line),
+    args: splitedArgs.map((x) => quote(x)),
+  }
+
+  // use callback function
+  if (run) {
+    const runContext: RunContext = {
+      ...commandBuilderContext,
+      applyCommandTemplate,
+      quote,
+      runCommandSync: (cmd) => execSync(cmd, { stdio: 'inherit', ...execOptions }),
+    }
+    console.log('')
+    console.log(
+      boxen(
+        [
+          `${chalk.green(' line =>')} ${chalk.yellow(line.padEnd(70, ' '))}`,
+          `${chalk.green('  run =>')} ${chalk.yellow(run.name)}`,
+        ].join('\n'),
+        { borderColor: 'green', title: chalk.green(`${lognsp}:line`) },
+      ),
+    )
+    if (yes) {
+      await run(runContext)
+    }
+  }
+
+  // spawn command
+  else if (command) {
+    const cmd =
+      typeof command === 'string'
+        ? applyCommandTemplate(command, commandBuilderContext)
+        : command(commandBuilderContext)
+    console.log('')
+    console.log(
+      boxen(
+        [
+          `${chalk.green(' line =>')} ${chalk.yellow(line.padEnd(70, ' '))}`,
+          `${chalk.green('  cmd =>')} ${chalk.yellow(cmd)}`,
+        ].join('\n'),
+        { borderColor: 'green', title: chalk.green(`${lognsp}:line`) },
+      ),
+    )
+    if (yes) {
+      execSync(cmd, { stdio: 'inherit', ...execOptions })
+    }
+  }
+
+  // none
+  else {
+    throw new Error('unexpected logic branch')
   }
 }

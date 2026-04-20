@@ -4,7 +4,7 @@ import { createRequire } from 'node:module'
 import { Builtins, Cli } from 'clipanion'
 import { DefaultCommand } from './commands/default'
 import { RunInPlatypusCommand } from './commands/run-in-platypus'
-import { TxtCommand } from './commands/txt'
+import { TxtCommand } from './commands/txt-command'
 import type { PackageJson } from 'type-fest'
 
 const require = createRequire(import.meta.url)
