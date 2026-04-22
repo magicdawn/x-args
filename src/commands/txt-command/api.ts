@@ -147,7 +147,6 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
       })
 
     await promise
-    console.log(1111)
   }
 }
 
