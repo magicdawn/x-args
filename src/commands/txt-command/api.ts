@@ -4,7 +4,7 @@ import path from 'node:path'
 import { Result } from 'better-result'
 import chalk from 'chalk'
 import { watch } from 'chokidar'
-import { debounce, once, uniq } from 'es-toolkit'
+import { debounce, noop, once, pick, uniq } from 'es-toolkit'
 import logSymbols from 'log-symbols'
 import ms from 'ms'
 import PQueue from 'p-queue'
@@ -76,9 +76,15 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
   // multi txt-files
   const txtFiles = uniq([opts.txtFiles].flat().map((x) => path.resolve(x)))
 
+  // check --session argv
+  for (const txtFile of txtFiles) {
+    new TxtFileSessionController(txtFile).run(opts.session)
+  }
+
   // first run
   const queue = new PQueue({ concurrency: 1 })
-  queue.addAll(txtFiles.map((x) => () => startTxtCommandSingleTxtFile(x, opts)))
+  const drainConfig = pick(opts, ['yes', 'command', 'run', 'execOptions'])
+  queue.addAll(txtFiles.map((x) => () => drainSingleTxtFile(x, drainConfig)))
   if (!wait) {
     await queue.onIdle()
   }
@@ -86,12 +92,7 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
   // wait
   if (wait) {
     const watcher = watch(txtFiles).on('change', (changedFile) => {
-      queue.add(() =>
-        startTxtCommandSingleTxtFile(changedFile, {
-          ...opts,
-          session: SessionControl.Continue,
-        }),
-      )
+      queue.add(() => drainSingleTxtFile(changedFile, drainConfig))
     })
     const unwatch = once(() => watcher.close())
     process.on('exit', unwatch)
@@ -130,51 +131,62 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
   }
 }
 
-async function startTxtCommandSingleTxtFile(
+export class TxtFileSessionController {
+  sessionFile: string
+  constructor(public txtFile: string) {
+    this.sessionFile = path.join(path.dirname(txtFile), `.x-args-session.${path.basename(txtFile)}`)
+  }
+
+  // #region storage
+  load = () => {
+    let processedLines = new Set<string>()
+    if (fse.existsSync(this.sessionFile)) {
+      const content = fse.readFileSync(this.sessionFile, 'utf8')
+      if (content) {
+        const result = Result.try(() => superjson.parse<{ processed: Set<string> }>(content))
+        if (result.isErr()) {
+          console.error(`${logSymbols.error}: failed to parse broken session file: %s`, this.sessionFile)
+        } else {
+          processedLines = new Set(result.value.processed)
+          console.info(`${chalk.green(`[${lognsp}:session]`)} loaded from file %s`, this.sessionFile)
+        }
+      }
+    }
+    return processedLines
+  }
+  save = (processedLines: Set<string>) => {
+    fse.outputFileSync(this.sessionFile, superjson.stringify({ processed: processedLines }))
+  }
+  // #endregion
+
+  // #region actions
+  run = (action: SessionControl) => this[action]()
+  private start = () => {
+    assert(
+      this.load().size === 0,
+      `session already exists, use \`${SessionControl.Continue}\` or \`${SessionControl.ReStart}\``,
+    )
+  }
+  private restart = () => {
+    fse.outputFileSync(this.sessionFile, '')
+  }
+  private continue = noop
+  // #endregion
+}
+
+export async function drainSingleTxtFile(
   txtFile: string,
-  {
-    session,
-    yes,
-    command,
-    run,
-    execOptions,
-  }: Pick<StartTxtCommandOptions, 'session' | 'yes' | 'command' | 'run' | 'execOptions'>,
+  { yes, command, run, execOptions }: Pick<StartTxtCommandOptions, 'yes' | 'command' | 'run' | 'execOptions'>,
 ) {
   console.log('')
-  console.log(`${chalk.green('[x-args]')}: received`)
+  console.log(`${chalk.green(`${lognsp}:drainSingleTxtFile`)} =>`)
   console.log(`   ${chalk.cyan('txt file')}: ${chalk.yellow(txtFile)}`)
   if (command && typeof command === 'string') console.log(`    ${chalk.cyan('command')}: ${chalk.yellow(command)}`)
   console.log('')
 
-  const sessionControl = session
-  const sessionFile = path.join(path.dirname(txtFile), `.x-args-session.${path.basename(txtFile)}`)
-
-  let processedLines = new Set<string>()
-  if (sessionControl === SessionControl.Start) {
-    if (fse.existsSync(sessionFile) && fse.readFileSync(sessionFile, 'utf8').length) {
-      console.error(`session already exists, use \`${SessionControl.Continue}\` or \`${SessionControl.ReStart}\``)
-      process.exit(1)
-    }
-  } else if (sessionControl === SessionControl.ReStart) {
-    if (fse.existsSync(sessionFile)) {
-      fse.removeSync(sessionFile)
-    }
-  } else if (sessionControl === SessionControl.Continue && fse.existsSync(sessionFile)) {
-    const content = fse.readFileSync(sessionFile, 'utf8')
-    if (content) {
-      const result = Result.try(() => superjson.parse<{ processed: Set<string> }>(content))
-      if (result.isErr()) {
-        console.error(`${logSymbols.error}: failed to parse broken session file: %s`, sessionFile)
-      } else {
-        processedLines = new Set(result.value.processed)
-        console.info(`${chalk.green(`[${lognsp}:session]`)} loaded from file %s`, sessionFile)
-      }
-    }
-  }
-
-  function saveProcessed() {
-    fse.outputFileSync(sessionFile, superjson.stringify({ processedLines }))
-  }
+  const sessionCtrl = new TxtFileSessionController(txtFile)
+  const processedLines = sessionCtrl.load()
+  const saveProcessed = () => sessionCtrl.save(processedLines)
 
   let line: string | undefined
   while ((line = getTxtFileNextLine(txtFile, processedLines))) {
@@ -228,7 +240,7 @@ async function runSingleLine(
       ].join('\n'),
       {
         borderColor: 'green',
-        title: chalk.green(`${lognsp} txt-file:${txtFile}`), // TODO: check out
+        title: chalk.green(`${lognsp}:runSingleLine`), // TODO: check out
       },
     )
   }
@@ -237,7 +249,7 @@ async function runSingleLine(
   if (run) {
     const runContext: RunContext = { ...commandBuilderContext, runCommandSync, txtFile }
     console.log('')
-    console.log(headerBox(`${chalk.green('  run =>')} funciton-name:${chalk.yellow(run.name)}`))
+    console.log(headerBox(`${chalk.green('  run =>')} <funciton ${chalk.yellow(run.name)}>`))
     if (yes) {
       await run(runContext)
     }
