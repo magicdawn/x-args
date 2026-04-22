@@ -2,7 +2,7 @@
   "name": "@magicdawn/x-args",
   "type": "module",
   "version": "3.1.1",
-  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319",
+  "packageManager": "pnpm@10.33.1+sha512.05ba3c1d5d1c18f68df06470d74055e62d41fc110a0c660db1b2dfb2785327f04cf0f68345d4609bc52089e7fa0343c31593b2f9594e2c5d5da426230acc9820",
   "description": "play with cli commands like a composer",
   "author": "magicdawn",
   "license": "MIT",
@@ -20,8 +20,12 @@
     "args-composer",
     "args-manipulator"
   ],
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "bin": {
     "x-args": "dist/bin.js"
   },
@@ -63,7 +67,9 @@
     "mac-helper": "^0.7.0",
     "ms": "^2.1.3",
     "needle-kit": "^3.6.1",
+    "obug": "^2.1.1",
     "p-queue": "^9.1.2",
+    "proper-lockfile": "^4.1.2",
     "shlex": "^3.0.0",
     "superjson": "^2.2.6",
     "zod": "^4.3.6"
@@ -75,6 +81,7 @@
     "@types/fs-extra": "^11.0.4",
     "@types/ms": "^2.1.0",
     "@types/node": "^25.6.0",
+    "@types/proper-lockfile": "^4.1.4",
     "concurrently": "^9.2.1",
     "eslint": "10.2.1",
     "eslint-config-prettier": "^10.1.8",
@@ -85,7 +92,7 @@
     "nyc": "18.0.0",
     "prettier": "^3.8.3",
     "should": "^13.2.3",
-    "tsdown": "^0.21.9",
+    "tsdown": "^0.21.10",
     "type-fest": "^5.6.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.0"

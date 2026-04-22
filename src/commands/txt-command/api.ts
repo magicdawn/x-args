@@ -8,11 +8,15 @@ import { debounce, noop, once, pick, uniq } from 'es-toolkit'
 import logSymbols from 'log-symbols'
 import ms from 'ms'
 import PQueue from 'p-queue'
+import lockfile from 'proper-lockfile'
 import { quote } from 'shlex'
 import superjson from 'superjson'
+import { baseDebug } from '../../common'
 import { boxen, fse } from '../../libs'
 import { parseLineToArgs } from '../../util/parse-line'
 import type { TxtCommand } from '.'
+
+const debug = baseDebug.extend('txt-command:api')
 
 // export for `startTxtCommand` args.sesssion
 export enum SessionControl {
@@ -81,6 +85,21 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
     new TxtFileSessionController(txtFile).run(opts.session)
   }
 
+  // lock txt-files to prevent multiple instances
+  for (const txtFile of txtFiles) {
+    const locked = lockfile.checkSync(txtFile)
+    if (locked) throw new Error(`txt file ${txtFile} is locked by another instance.`)
+  }
+  using stack = new DisposableStack()
+  for (const txtFile of txtFiles) {
+    debug('proper-lockfile.locking %s', txtFile)
+    lockfile.lockSync(txtFile)
+    stack.defer(() => {
+      debug('proper-lockfile.unlocking %s', txtFile)
+      lockfile.unlockSync(txtFile)
+    })
+  }
+
   // first run
   const queue = new PQueue({ concurrency: 1 })
   const drainConfig = pick(opts, ['yes', 'command', 'run', 'execOptions'])
@@ -127,7 +146,8 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
         scheduleExit.cancel()
       })
 
-    return promise
+    await promise
+    console.log(1111)
   }
 }
 
