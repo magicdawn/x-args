@@ -78,7 +78,6 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
 
   // first run
   const queue = new PQueue({ concurrency: 1 })
-  const queueTxtFile = (txtFile: string) => queue.add(() => startTxtCommandSingleTxtFile(txtFile, opts))
   queue.addAll(txtFiles.map((x) => () => startTxtCommandSingleTxtFile(x, opts)))
   if (!wait) {
     await queue.onIdle()
@@ -87,7 +86,12 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
   // wait
   if (wait) {
     const watcher = watch(txtFiles).on('change', (changedFile) => {
-      queueTxtFile(changedFile)
+      queue.add(() =>
+        startTxtCommandSingleTxtFile(changedFile, {
+          ...opts,
+          session: SessionControl.Continue,
+        }),
+      )
     })
     const unwatch = once(() => watcher.close())
     process.on('exit', unwatch)
