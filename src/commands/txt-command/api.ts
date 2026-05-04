@@ -10,6 +10,7 @@ import ms from 'ms'
 import PQueue from 'p-queue'
 import lockfile from 'proper-lockfile'
 import { quote } from 'shlex'
+import siginfo from 'siginfo'
 import superjson from 'superjson'
 import { baseDebug } from '../../common'
 import { boxen, fse } from '../../libs'
@@ -135,6 +136,11 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
       unwatch()
       resolve()
     }, waitTimeoutMs)
+
+    siginfo(() => {
+      printIdleInfo()
+      printIdleInfo.flush()
+    })
 
     queue
       .on('idle', () => {
