@@ -14,7 +14,7 @@ import siginfo from 'siginfo'
 import superjson from 'superjson'
 import { baseDebug } from '../../common'
 import { boxen, fse } from '../../libs'
-import { parseLineToArgs } from '../../util/parse-line'
+import { parseLineToArgs } from '../../utils/parse-line'
 import type { TxtCommand } from '.'
 
 const debug = baseDebug.extend('txt-command:api')

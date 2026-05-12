@@ -3,8 +3,8 @@ import chalk from 'chalk'
 import { Command, Option, type Usage } from 'clipanion'
 import fg from 'fast-glob'
 import { PathFinder } from 'mac-helper'
-import { BaseCommand } from '../util/BaseCommand'
-import { getFilenameTokens, printFilenameTokens, renderFilenameTokens } from '../util/file'
+import { BaseCommand } from '../utils/BaseCommand'
+import { getFilenameTokens, printFilenameTokens, renderFilenameTokens } from '../utils/file'
 
 // e.g x-args -f './*.*' -c $'cwebp :file -o \':dir/:name_compressed.:ext\''
 export class DefaultCommand extends BaseCommand {
