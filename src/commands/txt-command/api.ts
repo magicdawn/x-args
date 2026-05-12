@@ -14,6 +14,7 @@ import siginfo from 'siginfo'
 import superjson from 'superjson'
 import { baseDebug } from '../../common'
 import { boxen, fse } from '../../libs'
+import { lockfileOf } from '../../utils/lockfile'
 import { parseLineToArgs } from '../../utils/parse-line'
 import type { TxtCommand } from '.'
 
@@ -88,16 +89,16 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
 
   // lock txt-files to prevent multiple instances
   for (const txtFile of txtFiles) {
-    const locked = lockfile.checkSync(txtFile)
+    const locked = lockfile.checkSync(txtFile, { lockfilePath: lockfileOf(txtFile) })
     if (locked) throw new Error(`txt file ${txtFile} is locked by another instance.`)
   }
   using stack = new DisposableStack()
   for (const txtFile of txtFiles) {
     debug('proper-lockfile.locking %s', txtFile)
-    lockfile.lockSync(txtFile)
+    lockfile.lockSync(txtFile, { lockfilePath: lockfileOf(txtFile) })
     stack.defer(() => {
       debug('proper-lockfile.unlocking %s', txtFile)
-      lockfile.unlockSync(txtFile)
+      lockfile.unlockSync(txtFile, { lockfilePath: lockfileOf(txtFile) })
     })
   }
 
