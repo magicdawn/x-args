@@ -1,7 +1,8 @@
+import { Result } from 'better-result'
 import boxen from 'boxen'
 import { Command, Option, type Usage } from 'clipanion'
 import { delay } from 'es-toolkit'
-import { execaSync, ExecaSyncError, type SyncResult } from 'execa'
+import { execaSync, ExecaSyncError } from 'execa'
 
 /**
  * what's this: https://github.com/sveinbjornt/Platypus/issues/274
@@ -25,43 +26,47 @@ export class RunInPlatypusCommand extends Command {
     // NOTE: this can also be done/escaped with `child_process.execSync(escapeShellArgs(this.args))`
     // execa has signal handling, don't know is it useful, let's see
 
-    let err: Error | undefined
-    let result: SyncResult | undefined
-    try {
-      // if your original command is `foo --bar baz`, can `foo` is in $PATH
-      // `x-args run-in-platypus -- foo --bar baz` is OK, $PATH is inherited
-      // no shell: since `this.args` may contains `$PF` / `$QS`, should not be treated as shell variable
-      result = execaSync({ stdio: 'inherit' })`${this.args}`
-    } catch (e) {
-      err = e as Error
-    }
+    // if your original command is `foo --bar baz`, can `foo` is in $PATH
+    // `x-args run-in-platypus -- foo --bar baz` is OK, $PATH is inherited
+    // no shell: since `this.args` may contains `$PF` / `$QS`, should not be treated as shell variable
 
-    if (err instanceof ExecaSyncError && err.isTerminated) {
-      // SIGFPE 'Floating point arithmetic error'
-      console.error(
-        '[RunInPlatypusCommand] terminated: signal => %s, signalDescription => %s',
-        err.signal,
-        err.signalDescription,
-      )
-      throw err
-    }
+    const execResult = Result.try(() => {
+      return execaSync({
+        stdio: 'inherit',
+        env: { RUN_IN_PLATYPUS: 'true' },
+      })`${this.args}`
+    })
 
-    // do not quit when error
-    if (err) {
-      console.log()
-      console.log(boxen('↓↓↓ [RunInPlatypusCommand] error happens', { padding: 1 }))
-      console.error(err.stack || err)
-      console.log()
+    if (execResult.isErr()) {
+      const err = execResult.error.cause as any
 
-      // ALERT:Hello|World\n
-      // NOTIFICATION:My title|My text\n
-      console.log()
-      console.log(`ALERT:Error|${(err.stack || err.message || '').split('\n')[0]}`)
-      console.log()
+      if (err instanceof ExecaSyncError && err.isTerminated) {
+        // SIGFPE 'Floating point arithmetic error'
+        console.error(
+          '[RunInPlatypusCommand] terminated: signal => %s, signalDescription => %s',
+          err.signal,
+          err.signalDescription,
+        )
+        throw err
+      }
 
-      // The maximum value for a 32-bit signed integer is 2147483647 milliseconds, which is roughly 24.8 days.
-      while (true) {
-        await delay(2147483647)
+      // do not quit when error
+      if (err) {
+        console.log()
+        console.log(boxen('↓↓↓ [RunInPlatypusCommand] error happens', { padding: 1 }))
+        console.error(err.stack || err)
+        console.log()
+
+        // ALERT:Hello|World\n
+        // NOTIFICATION:My title|My text\n
+        console.log()
+        console.log(`ALERT:Error|${(err.stack || err.message || '').split('\n')[0]}`)
+        console.log()
+
+        // The maximum value for a 32-bit signed integer is 2147483647 milliseconds, which is roughly 24.8 days.
+        while (true) {
+          await delay(2147483647)
+        }
       }
     }
   }

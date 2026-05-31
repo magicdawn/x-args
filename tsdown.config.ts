@@ -5,7 +5,7 @@ export default defineConfig({
   dts: true,
   format: 'esm',
   clean: true,
-  target: 'node18',
+  target: 'node20',
   fixedExtension: false,
   deps: {
     skipNodeModulesBundle: true,
