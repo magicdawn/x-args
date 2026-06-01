@@ -45,8 +45,8 @@ importers:
         specifier: ^7.0.1
         version: 7.0.1
       mac-helper:
-        specifier: ^0.8.1
-        version: 0.8.1
+        specifier: ^0.9.0
+        version: 0.9.0
       ms:
         specifier: ^2.1.3
         version: 2.1.3
@@ -1808,8 +1808,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  mac-helper@0.8.1:
-    resolution: {integrity: sha512-S/4fFL9TRIXP1RiD8Ma+Lm+nn12rIXmwtGsx6htIEw7rLuLNOHjEC0qmFXlSqYfd3ZaBK1qoRauyJHcADgdwWQ==}
+  mac-helper@0.9.0:
+    resolution: {integrity: sha512-zNaREHDT7v067+QWRuJ59qym4mNheL9V29CjmzvnSaTQtjtVHx0hfMq3zKxQJ35TdeT1h2HMvM84F2TyE1NqpA==}
 
   macos-version@5.2.1:
     resolution: {integrity: sha512-OHJU8nTNxHYL1FQhD+nZawWgXKXAqDGr4kluLtaqKO4au3cR41y1mKuVShOU5U4rOYiuPanljq6oFGmV2B9DFA==}
@@ -2155,8 +2155,8 @@ packages:
     resolution: {integrity: sha512-1WsPDsUSMmZH5LeMLegqkPDrsGgsWwk1Exipy2hvB0o/F0ASzbpIctSCcZIK1ykJvtTJULEH+20WOFjMvGnCTg==}
     engines: {node: '>=8'}
 
-  promise.map@1.1.3:
-    resolution: {integrity: sha512-q/F5PzkpXdNNPDbt8AYDpA8LCzibjrk4Vzk8ij+LwxpDESsJrF/oIA2yMB30ghx8rCt7XDpl2iRICyqCKlNn7g==}
+  promise.map@1.2.0:
+    resolution: {integrity: sha512-5O+nudco5olD+ySnG33PUoEfX4s8k2985pxYB6vVL3NZ3Ty/XHdh6M2RLaZLLkvXwYymTs3TXqLJ5BZBX7sUVQ==}
 
   proper-lockfile@4.1.2:
     resolution: {integrity: sha512-TjNPblN4BwAWMXU8s9AEz4JmQxnD1NNL7bNOY/AKUzyamc379FWASUhc/K1pL2noVb+XmZKLL68cjzLsiOAMaA==}
@@ -4414,11 +4414,11 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  mac-helper@0.8.1:
+  mac-helper@0.9.0:
     dependencies:
       '@jxa/run': 1.4.0
       es-toolkit: 1.47.0
-      promise.map: 1.1.3
+      promise.map: 1.2.0
 
   macos-version@5.2.1:
     dependencies:
@@ -4997,7 +4997,7 @@ snapshots:
     dependencies:
       fromentries: 1.3.2
 
-  promise.map@1.1.3: {}
+  promise.map@1.2.0: {}
 
   proper-lockfile@4.1.2:
     dependencies:

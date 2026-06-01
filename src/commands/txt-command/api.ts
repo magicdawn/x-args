@@ -266,7 +266,7 @@ async function runSingleLine(
       ].join('\n'),
       {
         borderColor: 'green',
-        title: chalk.green(`${lognsp}:runSingleLine`), // TODO: check out
+        title: chalk.green(`${lognsp}:runSingleLine`),
       },
     )
   }
