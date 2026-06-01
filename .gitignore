@@ -13,3 +13,4 @@ coverage.*
 **/*.tsbuildinfo
 /lib
 /dist
+/exe

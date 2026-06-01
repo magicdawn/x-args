@@ -1,14 +1,10 @@
 #!/usr/bin/env node
 
-import { createRequire } from 'node:module'
 import { Builtins, Cli } from 'clipanion'
+import { bin, name, version } from '../package.json'
 import { DefaultCommand } from './commands/default'
 import { RunInPlatypusCommand } from './commands/run-in-platypus'
 import { TxtCommand } from './commands/txt-command'
-import type { PackageJson } from 'type-fest'
-
-const require = createRequire(import.meta.url)
-const { version, name, bin } = require('../package') as PackageJson
 
 const [node, app, ...args] = process.argv
 const cli = new Cli({
