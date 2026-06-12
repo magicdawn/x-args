@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Builtins, Cli } from 'clipanion'
-import { bin, name, version } from '../package.json'
+import { name, version } from '../package.json'
 import { DefaultCommand } from './commands/default'
 import { RunInPlatypusCommand } from './commands/run-in-platypus'
 import { TxtCommand } from './commands/txt-command'
@@ -9,7 +9,7 @@ import { TxtCommand } from './commands/txt-command'
 const [node, app, ...args] = process.argv
 const cli = new Cli({
   binaryLabel: name,
-  binaryName: Object.keys(bin as Record<string, string>)[0],
+  binaryName: 'x-args',
   binaryVersion: version,
 })
 
