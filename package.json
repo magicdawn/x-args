@@ -28,7 +28,6 @@
   },
   "bin": {
     "x-args": "./dist/bin.js",
-    "x-args-js": "./dist/bin.js",
     "x-args-bun": "./exe/x-args-bun"
   },
   "files": [
@@ -37,7 +36,10 @@
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
-    "access": "public"
+    "access": "public",
+    "bin": {
+      "x-args": "./dist/bin.js"
+    }
   },
   "scripts": {
     "prepare": "husky",
