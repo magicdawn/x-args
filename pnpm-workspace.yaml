@@ -2,3 +2,8 @@ allowBuilds:
   unrs-resolver: true
 
 minimumReleaseAge: 1440
+
+minimumReleaseAgeExclude:
+  - '@optique/core@1.1.0'
+  - '@optique/discover@1.1.0'
+  - '@optique/run@1.1.0'
