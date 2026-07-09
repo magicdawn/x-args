@@ -60,7 +60,7 @@ export class RunInPlatypusCommand extends Command {
         // ALERT:Hello|World\n
         // NOTIFICATION:My title|My text\n
         console.log()
-        console.log(`ALERT:Error|${(err.stack || err.message || '').split('\n')[0]}`)
+        console.log(`ALERT:Error|${(err.stack || err.message || '').split('\n', 1)[0]}`)
         console.log()
 
         // The maximum value for a 32-bit signed integer is 2147483647 milliseconds, which is roughly 24.8 days.
