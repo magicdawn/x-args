@@ -247,12 +247,13 @@ async function runSingleLine(
     args: splitedArgs,
   }
 
-  const runCommandSync = (cmd: string) =>
-    execSync(cmd, {
+  const runCommandSync = (cmd: string) => {
+    return execSync(cmd, {
       stdio: 'inherit',
       cwd: path.dirname(txtFile), // set default cwd to txt file
       ...execOptions,
     })
+  }
 
   const headerBox = (cmdOrRun: string) => {
     return boxen(
