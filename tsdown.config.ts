@@ -8,6 +8,6 @@ export default defineConfig({
   target: 'node20',
   fixedExtension: false,
   deps: {
-    skipNodeModulesBundle: true,
+    neverBundle: true,
   },
 })

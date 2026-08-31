@@ -76,7 +76,7 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
   const { wait, waitTimeout } = opts
   const waitTimeoutMs = waitTimeout ? ms(waitTimeout as ms.StringValue) : Infinity
   if (Number.isNaN(waitTimeoutMs)) {
-    throw new TypeError('unrecognized --wait-timeout format, pls check https://npm.im/ms')
+    throw new TypeError('unrecognized --wait-timeout format, see https://npm.im/ms')
   }
 
   // multi txt-files
@@ -117,9 +117,6 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
     })
     const unwatch = once(() => watcher.close())
     process.on('exit', unwatch)
-    // 大多数情况下：不需要为了 unwatch 专门监听 SIGINT。只有当你的 unwatch 涉及“非自动释放资源”时，才有必要。
-    // process.on('SIGINT', unwatch)
-    // process.on('SIGTERM', unwatch)
 
     const { promise, resolve } = Promise.withResolvers<void>()
 
@@ -210,9 +207,9 @@ export async function drainSingleTxtFile(
   if (command && typeof command === 'string') console.log(`    ${chalk.cyan('command')}: ${chalk.yellow(command)}`)
   console.log('')
 
-  const sessionCtrl = new TxtFileSessionController(txtFile)
-  const processedLines = sessionCtrl.load()
-  const saveProcessed = () => sessionCtrl.save(processedLines)
+  const sc = new TxtFileSessionController(txtFile)
+  const processedLines = sc.load()
+  const saveProcessed = () => sc.save(processedLines)
 
   let line: string | undefined
   while ((line = getTxtFileNextLine(txtFile, processedLines))) {
