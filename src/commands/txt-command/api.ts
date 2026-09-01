@@ -59,6 +59,8 @@ export interface StartTxtCommandOptions extends Pick<TxtCommand, 'yes' | 'wait' 
   execOptions?: Partial<ExecSyncOptionsWithBufferEncoding>
   command?: string | ((ctx: CommandBuilderContext) => string)
   run?: (ctx: RunContext) => void | Promise<void>
+  isRunningPostActions?: () => boolean
+  waitPostActions?: () => Promise<void> | void
 }
 
 export const defaultTxtCommandContext = {
@@ -73,7 +75,7 @@ function assertCommandOrRun({ command, run }: Pick<StartTxtCommandOptions, 'comm
 
 export async function startTxtCommand(opts: StartTxtCommandOptions) {
   assertCommandOrRun(opts)
-  const { wait, waitTimeout } = opts
+  const { wait, waitTimeout, isRunningPostActions, waitPostActions } = opts
   const waitTimeoutMs = waitTimeout ? ms(waitTimeout as ms.StringValue) : Infinity
   if (Number.isNaN(waitTimeoutMs)) {
     throw new TypeError('unrecognized --wait-timeout format, see https://npm.im/ms')
@@ -122,6 +124,10 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
 
     const printIdleInfo = debounce(() => {
       if (queue.pending === 0 && queue.size === 0) {
+        if (isRunningPostActions?.()) {
+          queue.add(() => waitPostActions?.())
+          return
+        }
         console.log(`\n${logSymbols.info}: Queue ${chalk.green('Idle')}, Waiting for changes to:`)
         txtFiles.forEach((x) => {
           console.log(`   📝 %s`, x)
