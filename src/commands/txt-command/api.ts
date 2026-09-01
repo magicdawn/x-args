@@ -106,6 +106,8 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
 
   // first run
   const queue = new PQueue({ concurrency: 1 })
+  const isQueueIdle = () => queue.pending === 0 && queue.size === 0
+
   const drainConfig = pick(opts, ['yes', 'command', 'run', 'execOptions'])
   queue.addAll(txtFiles.map((x) => () => drainSingleTxtFile(x, drainConfig)))
   if (!wait) {
@@ -113,7 +115,7 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
   }
 
   // wait
-  if (wait) {
+  else {
     const watcher = watch(txtFiles).on('change', (changedFile) => {
       queue.add(() => drainSingleTxtFile(changedFile, drainConfig))
     })
@@ -123,16 +125,15 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
     const { promise, resolve } = Promise.withResolvers<void>()
 
     const printIdleInfo = debounce(() => {
-      if (queue.pending === 0 && queue.size === 0) {
-        if (isRunningPostActions?.()) {
-          queue.add(() => waitPostActions?.())
-          return
-        }
-        console.log(`\n${logSymbols.info}: Queue ${chalk.green('Idle')}, Waiting for changes to:`)
-        txtFiles.forEach((x) => {
-          console.log(`   📝 %s`, x)
-        })
+      if (!isQueueIdle()) return
+      if (isRunningPostActions?.() && waitPostActions) {
+        queue.add(() => waitPostActions?.())
+        return
       }
+      console.log(`\n${logSymbols.info}: Queue ${chalk.green('Idle')}, Waiting for changes to:`)
+      txtFiles.forEach((x) => {
+        console.log(`   📝 %s`, x)
+      })
     }, 2000)
     const scheduleExit = debounce(() => {
       printIdleInfo.cancel()
