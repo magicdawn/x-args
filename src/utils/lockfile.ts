@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import path from 'node:path'
 import envPaths from 'env-paths'
-import { fse } from '../libs'
+import { fse } from '$libs'
 
 export const appTempDir = envPaths('x-args').temp
 fse.ensureDirSync(appTempDir)

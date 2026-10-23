@@ -12,10 +12,10 @@ import lockfile from 'proper-lockfile'
 import { quote } from 'shlex'
 import siginfo from 'siginfo'
 import superjson from 'superjson'
-import { baseDebug } from '../../common'
-import { boxen, fse } from '../../libs'
-import { lockfileOf } from '../../utils/lockfile'
-import { parseLineToArgs } from '../../utils/parse-line'
+import { baseDebug } from '$common'
+import { boxen, fse } from '$libs'
+import { lockfileOf } from '$utils/lockfile'
+import { parseLineToArgs } from '$utils/parse-line'
 import type { TxtCommand } from '.'
 
 const debug = baseDebug.extend('txt-command:api')
@@ -147,15 +147,14 @@ export async function startTxtCommand(opts: StartTxtCommandOptions) {
       printIdleInfo.flush()
     })
 
-    queue
-      .on('idle', () => {
-        printIdleInfo()
-        if (Number.isFinite(waitTimeoutMs)) scheduleExit()
-      })
-      .on('active', () => {
-        printIdleInfo.cancel()
-        scheduleExit.cancel()
-      })
+    queue.addEventListener('idle', () => {
+      printIdleInfo()
+      if (Number.isFinite(waitTimeoutMs)) scheduleExit()
+    })
+    queue.addEventListener('active', () => {
+      printIdleInfo.cancel()
+      scheduleExit.cancel()
+    })
 
     await promise
   }
